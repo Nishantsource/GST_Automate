@@ -341,7 +341,12 @@ def clean_text(x):
 def clean_gstin(x):
     if pd.isna(x):
         return ""
-    return str(x).upper().replace(" ", "").strip()
+
+    value = str(x).upper().strip()
+    value = value.replace(" ", "")
+    value = value.replace("-", "")
+
+    return value
 
 
 def clean_invoice(x):
@@ -361,19 +366,27 @@ def amount(x):
         return 0.0
 
     try:
-        return float(
-            str(x)
-            .replace(",", "")
-            .replace("₹", "")
-            .strip()
-        )
-    except:
+        value = str(x).strip()
+
+        value = value.replace(",", "")
+        value = value.replace("₹", "")
+        value = value.replace("Rs.", "")
+        value = value.replace("Rs", "")
+        value = value.replace("INR", "")
+        value = value.replace("(", "-")
+        value = value.replace(")", "")
+
+        return float(value)
+
+    except Exception:
         return 0.0
 
 
 # =========================================================
 # COLUMN ALIASES
 # =========================================================
+# Software will look for these names.
+# Different names between Books and GST 2B are supported.
 
 ALIASES = {
 
@@ -381,39 +394,55 @@ ALIASES = {
         "GSTIN",
         "GSTIN/UIN",
         "GSTIN of Supplier",
+        "GSTIN of supplier",
         "Supplier GSTIN",
         "GST Number",
         "GST No",
         "GST No.",
-        "GSTIN of Vendor"
+        "GSTIN of Vendor",
+        "Vendor GSTIN",
+        "Party GSTIN",
+        "GSTIN/UIN of Recipient"
     ],
 
     "Invoice": [
         "Invoice Number",
+        "Invoice number",
         "Invoice No",
         "Invoice No.",
+        "Invoice No:",
         "Document Number",
         "Document No",
+        "Document No.",
         "Bill No",
         "Bill Number",
+        "Bill No.",
         "Invoice"
     ],
 
     "Date": [
         "Invoice Date",
+        "Invoice date",
         "Document Date",
+        "Document date",
         "Bill Date",
+        "Bill date",
         "Date"
     ],
 
     "Party": [
         "Party Name",
+        "Party name",
         "Supplier Name",
+        "Supplier name",
         "Supplier",
         "Vendor Name",
+        "Vendor name",
         "Vendor",
         "Trade Name",
+        "Trade name",
         "Legal Name",
+        "Legal name",
         "Party"
     ],
 
@@ -423,7 +452,10 @@ ALIASES = {
         "Taxable Amount",
         "Taxable Amount (₹)",
         "Taxable Amt",
-        "Taxable"
+        "Taxable",
+        "Taxable Value (₹)",
+        "Taxable Value INR",
+        "Taxable Amount INR"
     ],
 
     "IGST": [
@@ -431,7 +463,9 @@ ALIASES = {
         "IGST Amount",
         "IGST Amt",
         "Integrated Tax",
-        "Integrated Tax Amount"
+        "Integrated Tax Amount",
+        "Integrated Tax Amount (₹)",
+        "IGST Amount (₹)"
     ],
 
     "CGST": [
@@ -439,7 +473,9 @@ ALIASES = {
         "CGST Amount",
         "CGST Amt",
         "Central Tax",
-        "Central Tax Amount"
+        "Central Tax Amount",
+        "Central Tax Amount (₹)",
+        "CGST Amount (₹)"
     ],
 
     "SGST": [
@@ -447,8 +483,13 @@ ALIASES = {
         "SGST Amount",
         "SGST Amt",
         "UTGST",
+        "UTGST Amount",
         "State Tax",
-        "State Tax Amount"
+        "State Tax Amount",
+        "State/UT Tax",
+        "State/UT Tax Amount",
+        "State Tax Amount (₹)",
+        "SGST Amount (₹)"
     ],
 
     "InvoiceValue": [
@@ -458,12 +499,16 @@ ALIASES = {
         "Total Value",
         "Document Value",
         "Invoice Amount",
-        "Total Invoice Amount"
+        "Total Invoice Amount",
+        "Total Invoice Value (₹)",
+        "Invoice Value (₹)",
+        "Document Value (₹)"
     ]
 }
 
 
 def normalize_column(x):
+
     return re.sub(
         r"[^A-Z0-9]",
         "",
@@ -473,6 +518,7 @@ def normalize_column(x):
 
 def find_column(df, aliases):
 
+    # First: exact normalized match
     columns = {
         normalize_column(c): c
         for c in df.columns
@@ -485,13 +531,14 @@ def find_column(df, aliases):
         if key in columns:
             return columns[key]
 
-    for c in df.columns:
+    # Second: partial match
+    for alias in aliases:
 
-        cc = normalize_column(c)
+        aa = normalize_column(alias)
 
-        for alias in aliases:
+        for c in df.columns:
 
-            aa = normalize_column(alias)
+            cc = normalize_column(c)
 
             if aa in cc or cc in aa:
                 return c
@@ -532,6 +579,7 @@ def read_excel(file):
                 ALIASES["Invoice"]
             )
 
+            # Only invoice-related sheets
             if gstin or invoice:
 
                 df["_SHEET"] = sheet
@@ -541,9 +589,10 @@ def read_excel(file):
                 sheets.append(sheet)
 
         except Exception:
-            pass
+            continue
 
     if not all_rows:
+
         raise ValueError(
             "Excel file mein GST invoice data nahi mila."
         )
@@ -555,82 +604,145 @@ def read_excel(file):
 
 
 # =========================================================
-# STANDARDIZE
+# STANDARDIZE DATA
 # =========================================================
 
 def standardize(df):
 
     result = pd.DataFrame()
-    c = {}
 
+    detected = {}
+
+    # Detect required columns
     for key in ALIASES:
 
-        c[key] = find_column(
+        detected[key] = find_column(
             df,
             ALIASES[key]
         )
 
-    if c["GSTIN"]:
+    # -----------------------------------------------------
+    # GSTIN
+    # -----------------------------------------------------
+
+    if detected["GSTIN"]:
+
         result["GSTIN"] = df[
-            c["GSTIN"]
+            detected["GSTIN"]
         ].apply(clean_gstin)
+
     else:
+
         result["GSTIN"] = ""
 
-    if c["Invoice"]:
+    # -----------------------------------------------------
+    # INVOICE
+    # -----------------------------------------------------
+
+    if detected["Invoice"]:
+
         result["Invoice Number"] = df[
-            c["Invoice"]
+            detected["Invoice"]
         ].apply(clean_invoice)
+
     else:
+
         result["Invoice Number"] = ""
 
-    if c["Date"]:
+    # -----------------------------------------------------
+    # DATE
+    # -----------------------------------------------------
+
+    if detected["Date"]:
+
         result["Invoice Date"] = pd.to_datetime(
-            df[c["Date"]],
-            errors="coerce"
+            df[detected["Date"]],
+            errors="coerce",
+            dayfirst=True
         )
+
     else:
+
         result["Invoice Date"] = pd.NaT
 
-    if c["Party"]:
+    # -----------------------------------------------------
+    # PARTY
+    # -----------------------------------------------------
+
+    if detected["Party"]:
+
         result["Party Name"] = df[
-            c["Party"]
+            detected["Party"]
         ].apply(clean_text)
+
     else:
+
         result["Party Name"] = ""
 
-    if c["Taxable"]:
+    # -----------------------------------------------------
+    # TAXABLE
+    # -----------------------------------------------------
+
+    if detected["Taxable"]:
+
         result["Taxable Value"] = df[
-            c["Taxable"]
+            detected["Taxable"]
         ].apply(amount)
+
     else:
+
         result["Taxable Value"] = 0.0
 
-    if c["IGST"]:
+    # -----------------------------------------------------
+    # IGST
+    # -----------------------------------------------------
+
+    if detected["IGST"]:
+
         result["IGST"] = df[
-            c["IGST"]
+            detected["IGST"]
         ].apply(amount)
+
     else:
+
         result["IGST"] = 0.0
 
-    if c["CGST"]:
+    # -----------------------------------------------------
+    # CGST
+    # -----------------------------------------------------
+
+    if detected["CGST"]:
+
         result["CGST"] = df[
-            c["CGST"]
+            detected["CGST"]
         ].apply(amount)
+
     else:
+
         result["CGST"] = 0.0
 
-    if c["SGST"]:
+    # -----------------------------------------------------
+    # SGST
+    # -----------------------------------------------------
+
+    if detected["SGST"]:
+
         result["SGST"] = df[
-            c["SGST"]
+            detected["SGST"]
         ].apply(amount)
+
     else:
+
         result["SGST"] = 0.0
 
-    if c["InvoiceValue"]:
+    # -----------------------------------------------------
+    # INVOICE VALUE
+    # -----------------------------------------------------
+
+    if detected["InvoiceValue"]:
 
         result["Invoice Value"] = df[
-            c["InvoiceValue"]
+            detected["InvoiceValue"]
         ].apply(amount)
 
     else:
@@ -642,12 +754,42 @@ def standardize(df):
             + result["SGST"]
         )
 
+    # -----------------------------------------------------
+    # SOURCE SHEET
+    # -----------------------------------------------------
+
     if "_SHEET" in df.columns:
+
         result["Source Sheet"] = df[
             "_SHEET"
         ]
+
     else:
+
         result["Source Sheet"] = ""
+
+    # -----------------------------------------------------
+    # CLEAN NUMERIC VALUES
+    # -----------------------------------------------------
+
+    numeric_columns = [
+        "Taxable Value",
+        "IGST",
+        "CGST",
+        "SGST",
+        "Invoice Value"
+    ]
+
+    for col in numeric_columns:
+
+        result[col] = pd.to_numeric(
+            result[col],
+            errors="coerce"
+        ).fillna(0.0)
+
+    # -----------------------------------------------------
+    # REMOVE INVALID RECORDS
+    # -----------------------------------------------------
 
     result = result[
         (result["GSTIN"] != "")
@@ -667,6 +809,7 @@ def reconcile(two_b, books, tolerance):
     two_b = two_b.copy()
     books = books.copy()
 
+    # Matching key
     two_b["KEY"] = (
         two_b["GSTIN"]
         + "|"
@@ -688,30 +831,85 @@ def reconcile(two_b, books, tolerance):
         indicator=True
     )
 
+    # -----------------------------------------------------
+    # IMPORTANT
+    # Fill missing numeric values
+    # -----------------------------------------------------
+
+    numeric_columns = [
+        "Taxable Value_Books",
+        "Taxable Value_2B",
+        "IGST_Books",
+        "IGST_2B",
+        "CGST_Books",
+        "CGST_2B",
+        "SGST_Books",
+        "SGST_2B",
+        "Invoice Value_Books",
+        "Invoice Value_2B"
+    ]
+
+    for col in numeric_columns:
+
+        if col in result.columns:
+
+            result[col] = pd.to_numeric(
+                result[col],
+                errors="coerce"
+            ).fillna(0.0)
+
     statuses = []
     differences = []
 
+    # -----------------------------------------------------
+    # CHECK EACH INVOICE
+    # -----------------------------------------------------
+
     for _, row in result.iterrows():
+
+        # ---------------------------------------------
+        # Missing in 2B
+        # ---------------------------------------------
 
         if row["_merge"] == "left_only":
 
-            statuses.append("Missing in 2B")
+            statuses.append(
+                "Missing in 2B"
+            )
 
-            differences.append(
+            diff = (
                 row["IGST_Books"]
                 + row["CGST_Books"]
                 + row["SGST_Books"]
             )
 
+            differences.append(
+                round(diff, 2)
+            )
+
+        # ---------------------------------------------
+        # Missing in Books
+        # ---------------------------------------------
+
         elif row["_merge"] == "right_only":
 
-            statuses.append("Missing in Books")
+            statuses.append(
+                "Missing in Books"
+            )
 
-            differences.append(
+            diff = (
                 row["IGST_2B"]
                 + row["CGST_2B"]
                 + row["SGST_2B"]
             )
+
+            differences.append(
+                round(diff, 2)
+            )
+
+        # ---------------------------------------------
+        # Present in both
+        # ---------------------------------------------
 
         else:
 
@@ -759,16 +957,30 @@ def reconcile(two_b, books, tolerance):
                 and invoice_diff <= tolerance
             ):
 
-                statuses.append("Matched")
+                statuses.append(
+                    "Matched"
+                )
+
+                differences.append(0.0)
 
             else:
 
-                statuses.append("Value Mismatch")
+                statuses.append(
+                    "Value Mismatch"
+                )
 
-            differences.append(total_diff)
+                differences.append(
+                    round(total_diff, 2)
+                )
 
     result["Status"] = statuses
+
     result["ITC Difference"] = differences
+
+    result["ITC Difference"] = pd.to_numeric(
+        result["ITC Difference"],
+        errors="coerce"
+    ).fillna(0.0)
 
     return result
 
@@ -784,6 +996,7 @@ def prepare_display(df):
     def col(name, default=""):
 
         if name in df.columns:
+
             return df[name]
 
         return pd.Series(
@@ -819,17 +1032,37 @@ def prepare_display(df):
         col("Invoice Date_2B")
     )
 
-    out["Taxable - Books"] = col("Taxable Value_Books")
-    out["Taxable - 2B"] = col("Taxable Value_2B")
+    out["Taxable - Books"] = col(
+        "Taxable Value_Books"
+    )
 
-    out["IGST - Books"] = col("IGST_Books")
-    out["IGST - 2B"] = col("IGST_2B")
+    out["Taxable - 2B"] = col(
+        "Taxable Value_2B"
+    )
 
-    out["CGST - Books"] = col("CGST_Books")
-    out["CGST - 2B"] = col("CGST_2B")
+    out["IGST - Books"] = col(
+        "IGST_Books"
+    )
 
-    out["SGST - Books"] = col("SGST_Books")
-    out["SGST - 2B"] = col("SGST_2B")
+    out["IGST - 2B"] = col(
+        "IGST_2B"
+    )
+
+    out["CGST - Books"] = col(
+        "CGST_Books"
+    )
+
+    out["CGST - 2B"] = col(
+        "CGST_2B"
+    )
+
+    out["SGST - Books"] = col(
+        "SGST_Books"
+    )
+
+    out["SGST - 2B"] = col(
+        "SGST_2B"
+    )
 
     out["Invoice Value - Books"] = col(
         "Invoice Value_Books"
@@ -840,10 +1073,13 @@ def prepare_display(df):
     )
 
     out["ITC Difference"] = col(
-        "ITC Difference"
+        "ITC Difference",
+        0.0
     )
 
-    out["Status"] = col("Status")
+    out["Status"] = col(
+        "Status"
+    )
 
     return out.reset_index(drop=True)
 
@@ -891,11 +1127,14 @@ def show_table(df):
 
         if c in display.columns:
 
+            display[c] = pd.to_numeric(
+                display[c],
+                errors="coerce"
+            ).fillna(0)
+
             display[c] = display[c].apply(
                 lambda x:
                 f"₹{float(x):,.2f}"
-                if pd.notna(x)
-                else "-"
             )
 
     html = display.to_html(
@@ -959,12 +1198,15 @@ def create_excel(result):
 
 st.markdown("""
 <div class="hero">
+
     <h1>🧾 GST Reconciliation Pro</h1>
+
     <p>
         GST 2B vs Books &nbsp;•&nbsp;
         ITC Reconciliation &nbsp;•&nbsp;
         Invoice Exception Analysis
     </p>
+
 </div>
 """, unsafe_allow_html=True)
 
@@ -975,7 +1217,9 @@ st.markdown("""
 
 with st.sidebar:
 
-    st.markdown("## ⚙️ Reconciliation Settings")
+    st.markdown(
+        "## ⚙️ Reconciliation Settings"
+    )
 
     tolerance = st.number_input(
         "Mismatch Tolerance ₹",
@@ -986,7 +1230,9 @@ with st.sidebar:
 
     st.divider()
 
-    st.markdown("### 🔑 Matching Key")
+    st.markdown(
+        "### 🔑 Matching Key"
+    )
 
     st.info(
         "GSTIN + Invoice Number"
@@ -994,7 +1240,9 @@ with st.sidebar:
 
     st.divider()
 
-    st.markdown("### 📌 Status")
+    st.markdown(
+        "### 📌 Status"
+    )
 
     st.caption(
         "🟢 Matched\n\n"
@@ -1019,11 +1267,16 @@ with u1:
 
     st.markdown("""
     <div class="upload-card">
-        <div class="upload-title">📥 GST 2B File</div>
+
+        <div class="upload-title">
+            📥 GST 2B File
+        </div>
+
         <div class="upload-subtitle">
             Upload your GST portal 2B Excel file.
             Multiple sheets are supported.
         </div>
+
     </div>
     """, unsafe_allow_html=True)
 
@@ -1033,14 +1286,20 @@ with u1:
         key="two_b_file"
     )
 
+
 with u2:
 
     st.markdown("""
     <div class="upload-card">
-        <div class="upload-title">📚 Books File</div>
+
+        <div class="upload-title">
+            📚 Books File
+        </div>
+
         <div class="upload-subtitle">
             Upload your purchase/books Excel file.
         </div>
+
     </div>
     """, unsafe_allow_html=True)
 
@@ -1086,6 +1345,19 @@ if two_b_file and books_file:
                 books = standardize(
                     books_raw
                 )
+
+                # Safety check
+                if two_b.empty:
+
+                    raise ValueError(
+                        "GST 2B mein valid GSTIN + Invoice Number records nahi mile."
+                    )
+
+                if books.empty:
+
+                    raise ValueError(
+                        "Books file mein valid GSTIN + Invoice Number records nahi mile."
+                    )
 
                 result = reconcile(
                     two_b,
@@ -1144,7 +1416,9 @@ if "reco_result" in st.session_state:
         "reco_books"
     ]
 
+    # =====================================================
     # COUNTS
+    # =====================================================
 
     total = len(result)
 
@@ -1165,6 +1439,35 @@ if "reco_result" in st.session_state:
     ).sum()
 
     # =====================================================
+    # IMPORTANT:
+    # VALUE MISMATCH AMOUNT
+    # =====================================================
+
+    mismatch_amount = pd.to_numeric(
+        result.loc[
+            result["Status"] == "Value Mismatch",
+            "ITC Difference"
+        ],
+        errors="coerce"
+    ).fillna(0).sum()
+
+    missing_2b_amount = pd.to_numeric(
+        result.loc[
+            result["Status"] == "Missing in 2B",
+            "ITC Difference"
+        ],
+        errors="coerce"
+    ).fillna(0).sum()
+
+    missing_books_amount = pd.to_numeric(
+        result.loc[
+            result["Status"] == "Missing in Books",
+            "ITC Difference"
+        ],
+        errors="coerce"
+    ).fillna(0).sum()
+
+    # =====================================================
     # KPI
     # =====================================================
 
@@ -1176,39 +1479,44 @@ if "reco_result" in st.session_state:
     c1, c2, c3, c4, c5 = st.columns(5)
 
     cards = [
+
         (
             c1,
             "TOTAL INVOICES",
-            total,
+            f"{total:,}",
             "All analysed records",
             "kpi-blue"
         ),
+
         (
             c2,
             "MATCHED",
-            matched,
+            f"{matched:,}",
             "Successfully matched",
             "kpi-green"
         ),
+
         (
             c3,
             "MISSING IN 2B",
-            missing_2b,
-            "Books → not in 2B",
+            f"{missing_2b:,}",
+            f"ITC ₹{missing_2b_amount:,.2f}",
             "kpi-red"
         ),
+
         (
             c4,
             "MISSING IN BOOKS",
-            missing_books,
-            "2B → not in Books",
+            f"{missing_books:,}",
+            f"ITC ₹{missing_books_amount:,.2f}",
             "kpi-orange"
         ),
+
         (
             c5,
             "VALUE MISMATCH",
-            mismatch,
-            "Tax/value difference",
+            f"{mismatch:,}",
+            f"Mismatch Amount ₹{mismatch_amount:,.2f}",
             "kpi-purple"
         )
     ]
@@ -1220,17 +1528,19 @@ if "reco_result" in st.session_state:
             st.markdown(
                 f"""
                 <div class="kpi {colour}">
+
                     <div class="kpi-label">
                         {title}
                     </div>
 
                     <div class="kpi-value">
-                        {number:,}
+                        {number}
                     </div>
 
                     <div class="kpi-description">
                         {desc}
                     </div>
+
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -1260,6 +1570,7 @@ if "reco_result" in st.session_state:
                 "selected_status"
             ] = "Missing in 2B"
 
+
     with b2:
 
         if st.button(
@@ -1272,6 +1583,7 @@ if "reco_result" in st.session_state:
                 "selected_status"
             ] = "Missing in Books"
 
+
     with b3:
 
         if st.button(
@@ -1283,6 +1595,7 @@ if "reco_result" in st.session_state:
             st.session_state[
                 "selected_status"
             ] = "Value Mismatch"
+
 
     with b4:
 
@@ -1342,12 +1655,37 @@ if "reco_result" in st.session_state:
     st.markdown(
         f"""
         <div class="info-box">
+
             <b>ℹ️ Analysis:</b><br>
+
             {info_text.get(selected, "")}
+
         </div>
         """,
         unsafe_allow_html=True
     )
+
+    # Show mismatch amount when category selected
+    if selected == "Value Mismatch":
+
+        st.metric(
+            "💰 Total ITC Mismatch Amount",
+            f"₹{mismatch_amount:,.2f}"
+        )
+
+    elif selected == "Missing in 2B":
+
+        st.metric(
+            "💰 ITC Missing from 2B",
+            f"₹{missing_2b_amount:,.2f}"
+        )
+
+    elif selected == "Missing in Books":
+
+        st.metric(
+            "💰 ITC Missing from Books",
+            f"₹{missing_books_amount:,.2f}"
+        )
 
     show_table(detail)
 
@@ -1677,11 +2015,16 @@ else:
         </p>
 
         <p>
-        The system automatically detects GST columns
-        and matches invoices using:
+        The software automatically detects the required
+        GST columns even when Books and GST 2B use
+        different column names.
         </p>
 
-        <h3>🔑 GSTIN + Invoice Number</h3>
+        <h3>🔑 Matching Key</h3>
+
+        <p>
+        <b>GSTIN + Invoice Number</b>
+        </p>
 
         <p>
         The software identifies:
