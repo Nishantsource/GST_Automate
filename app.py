@@ -4,308 +4,325 @@ import plotly.express as px
 from io import BytesIO
 import re
 
-
 # =========================================================
-# PAGE
+# PAGE CONFIG
 # =========================================================
 
 st.set_page_config(
     page_title="GST Reconciliation Pro",
-    page_icon="📊",
-    layout="wide"
+    page_icon="🧾",
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-
 # =========================================================
-# PROFESSIONAL WHITE UI  (FIXED — full coverage of Streamlit's
-# internal containers so dark theme / OS dark-mode can never
-# leak through. Root fix also lives in .streamlit/config.toml)
+# PROFESSIONAL GST SOFTWARE THEME
 # =========================================================
 
 st.markdown("""
 <style>
 
+html, body, [class*="css"] {
+    font-family: Inter, Arial, sans-serif;
+}
+
 html {
     color-scheme: light !important;
 }
 
-/* Root app containers */
-.stApp,
-[data-testid="stAppViewContainer"],
-[data-testid="stHeader"],
-[data-testid="stToolbar"],
-[data-testid="stBottomBlockContainer"],
-[data-testid="stMain"],
-[data-testid="stMainBlockContainer"],
-body {
-    background: #ffffff !important;
-    color: #111827 !important;
+.stApp {
+    background: #f4f7fb !important;
+    color: #172033 !important;
+}
+
+[data-testid="stAppViewContainer"] {
+    background: #f4f7fb !important;
 }
 
 [data-testid="stHeader"] {
     background: transparent !important;
 }
 
-.main .block-container {
-    max-width: 1450px;
-    padding-top: 30px;
+[data-testid="stMainBlockContainer"] {
+    max-width: 1500px;
+    padding-top: 25px;
+}
+
+/* ================= HEADER ================= */
+
+.hero {
+    background: linear-gradient(135deg, #0f2a5f 0%, #1769aa 100%);
+    padding: 30px 34px;
+    border-radius: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 12px 30px rgba(15,42,95,.18);
+}
+
+.hero h1 {
+    color: white !important;
+    font-size: 34px;
+    margin: 0;
+    font-weight: 800;
+}
+
+.hero p {
+    color: #dbeafe !important;
+    font-size: 15px;
+    margin-top: 8px;
+    margin-bottom: 0;
+}
+
+/* ================= SIDEBAR ================= */
+
+[data-testid="stSidebar"] {
     background: #ffffff !important;
-}
-
-h1, h2, h3, h4, h5, h6, p, span, label, li,
-.stMarkdown, .stMarkdown p, .stText,
-[data-testid="stMarkdownContainer"] {
-    color: #111827 !important;
-}
-
-/* Sidebar */
-[data-testid="stSidebar"],
-[data-testid="stSidebarContent"],
-[data-testid="stSidebarUserContent"] {
-    background: #f8fafc !important;
-    color: #111827 !important;
-    border-right: 1px solid #e5e7eb;
+    border-right: 1px solid #e2e8f0;
 }
 
 [data-testid="stSidebar"] * {
-    color: #111827 !important;
+    color: #172033 !important;
 }
 
+/* ================= SECTION ================= */
 
-/* Header */
-
-.header {
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 16px;
-    padding: 25px 30px;
-    margin-bottom: 25px;
-    box-shadow: 0 4px 15px rgba(0,0,0,.05);
+.section-title {
+    font-size: 23px;
+    font-weight: 800;
+    color: #0f2a5f !important;
+    margin-top: 28px;
+    margin-bottom: 14px;
 }
 
-.header h1 {
-    margin: 0;
-    font-size: 32px;
+/* ================= UPLOAD CARDS ================= */
+
+.upload-card {
+    background: white;
+    border: 1px solid #dbe3ef;
+    border-radius: 18px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 5px 18px rgba(15,42,95,.06);
 }
 
-.header p {
-    color: #667085 !important;
-    margin-top: 7px;
+.upload-title {
+    color: #0f2a5f !important;
+    font-size: 19px;
+    font-weight: 800;
+    margin-bottom: 5px;
 }
 
+.upload-subtitle {
+    color: #64748b !important;
+    font-size: 13px;
+    margin-bottom: 12px;
+}
 
-/* KPI CARDS */
+/* ================= KPI CARDS ================= */
 
 .kpi {
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
+    background: white;
+    border: 1px solid #dbe3ef;
+    border-radius: 16px;
     padding: 20px;
-    min-height: 125px;
-    box-shadow: 0 3px 12px rgba(0,0,0,.05);
-    transition: .2s;
+    min-height: 135px;
+    box-shadow: 0 5px 18px rgba(15,42,95,.07);
+    transition: all .2s ease;
 }
 
 .kpi:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 25px rgba(0,0,0,.10);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(15,42,95,.13);
 }
 
-.kpi-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: #667085;
-}
-
-.kpi-number {
-    font-size: 30px;
+.kpi-label {
+    color: #64748b !important;
+    font-size: 12px;
     font-weight: 800;
+    letter-spacing: .5px;
+}
+
+.kpi-value {
+    color: #172033 !important;
+    font-size: 30px;
+    font-weight: 900;
     margin-top: 8px;
-    color: #111827;
 }
 
-.blue   { border-top: 4px solid #2563eb; }
-.green  { border-top: 4px solid #16a34a; }
-.red    { border-top: 4px solid #dc2626; }
-.orange { border-top: 4px solid #ea580c; }
-.purple { border-top: 4px solid #7c3aed; }
-
-
-/* BUTTONS */
-
-.stButton > button,
-.stDownloadButton > button {
-    background: #ffffff !important;
-    color: #111827 !important;
-    border: 1px solid #d1d5db !important;
-    border-radius: 10px !important;
-    min-height: 48px;
-    font-weight: 700;
-    transition: .2s;
+.kpi-description {
+    color: #94a3b8 !important;
+    font-size: 12px;
+    margin-top: 4px;
 }
 
-.stButton > button:hover,
-.stDownloadButton > button:hover {
-    background: #f8fafc !important;
-    color: #2563eb !important;
+.kpi-blue {
+    border-top: 4px solid #2563eb;
+}
+
+.kpi-green {
+    border-top: 4px solid #16a34a;
+}
+
+.kpi-red {
+    border-top: 4px solid #dc2626;
+}
+
+.kpi-orange {
+    border-top: 4px solid #ea580c;
+}
+
+.kpi-purple {
+    border-top: 4px solid #7c3aed;
+}
+
+/* ================= BUTTONS ================= */
+
+.stButton > button {
+    border-radius: 11px !important;
+    min-height: 46px !important;
+    font-weight: 800 !important;
+    border: 1px solid #d1d9e6 !important;
+    background: white !important;
+    color: #172033 !important;
+}
+
+.stButton > button:hover {
     border-color: #2563eb !important;
-    transform: translateY(-3px);
-    box-shadow: 0 7px 18px rgba(37,99,235,.12);
+    color: #2563eb !important;
+    box-shadow: 0 5px 15px rgba(37,99,235,.12);
 }
 
 .stButton > button[kind="primary"] {
-    background: #2563eb !important;
-    color: #ffffff !important;
-    border-color: #2563eb !important;
+    background: linear-gradient(135deg,#155eef,#1769aa) !important;
+    color: white !important;
+    border: none !important;
+    min-height: 52px !important;
+    font-size: 15px !important;
 }
 
-.stButton > button[kind="primary"]:hover {
-    background: #1d4ed8 !important;
-    color: #ffffff !important;
+/* ================= DOWNLOAD ================= */
+
+.stDownloadButton > button {
+    background: #0f2a5f !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 11px !important;
+    min-height: 50px !important;
+    font-weight: 800 !important;
 }
 
+/* ================= FILE UPLOADER ================= */
 
-/* UPLOAD */
-
-[data-testid="stFileUploader"],
 [data-testid="stFileUploaderDropzone"] {
-    background: #ffffff !important;
-    border: 1px solid #d1d5db !important;
-    border-radius: 12px;
-    color: #111827 !important;
+    background: #f8fbff !important;
+    border: 2px dashed #b8c9df !important;
+    border-radius: 14px !important;
 }
 
 [data-testid="stFileUploaderDropzone"] * {
-    color: #111827 !important;
+    color: #172033 !important;
 }
 
+/* ================= INPUTS ================= */
 
-/* INPUTS (number input, selectbox, text input) */
-
-.stNumberInput input,
-.stTextInput input,
-.stSelectbox div[data-baseweb="select"] > div,
-.stDateInput input {
-    background: #ffffff !important;
-    color: #111827 !important;
-    border: 1px solid #d1d5db !important;
+input {
+    color: #172033 !important;
+    background: white !important;
 }
 
-.stNumberInput label,
-.stTextInput label,
-.stSelectbox label {
-    color: #111827 !important;
+[data-baseweb="select"] > div {
+    background: white !important;
+    color: #172033 !important;
 }
 
+/* ================= INFO BOX ================= */
 
-/* METRICS */
-
-[data-testid="stMetric"] {
-    background: #ffffff !important;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 12px;
+.info-box {
+    background: white;
+    border: 1px solid #dbe3ef;
+    border-left: 5px solid #2563eb;
+    border-radius: 13px;
+    padding: 18px;
+    margin: 14px 0;
+    color: #475569 !important;
+    box-shadow: 0 4px 14px rgba(15,42,95,.05);
 }
 
-[data-testid="stMetricLabel"],
-[data-testid="stMetricValue"],
-[data-testid="stMetricDelta"] {
-    color: #111827 !important;
+.info-box h3 {
+    color: #0f2a5f !important;
+    margin-top: 0;
 }
 
-
-/* EXPANDER */
-
-[data-testid="stExpander"] {
-    background: #ffffff !important;
-    border: 1px solid #e5e7eb !important;
-    border-radius: 10px;
-}
-
-[data-testid="stExpander"] summary,
-[data-testid="stExpander"] * {
-    color: #111827 !important;
-    background: #ffffff !important;
-}
-
-
-/* NATIVE / BUILT-IN DATAFRAME (if used anywhere) */
-
-[data-testid="stDataFrame"],
-[data-testid="stTable"] {
-    background: #ffffff !important;
-}
-
-
-/* CUSTOM TABLE (used for reconciliation results) */
+/* ================= TABLE ================= */
 
 .custom-table {
     width: 100%;
     border-collapse: collapse;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
+    background: white;
+    border: 1px solid #dbe3ef;
+    border-radius: 12px;
     overflow: hidden;
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .custom-table th {
-    background: #f8fafc;
-    color: #344054;
-    font-weight: 700;
+    background: #eef4fb;
+    color: #0f2a5f !important;
     padding: 12px;
-    border-bottom: 1px solid #e5e7eb;
     text-align: left;
+    font-weight: 800;
+    border-bottom: 1px solid #dbe3ef;
     white-space: nowrap;
 }
 
 .custom-table td {
-    background: #ffffff;
-    color: #111827;
-    padding: 11px 12px;
-    border-bottom: 1px solid #f0f1f3;
+    background: white;
+    color: #172033 !important;
+    padding: 11px;
+    border-bottom: 1px solid #edf1f6;
     white-space: nowrap;
 }
 
 .custom-table tr:hover td {
-    background: #f8fafc;
+    background: #f7faff;
 }
 
+/* ================= EXPANDER ================= */
 
-/* INFO */
-
-.info-box {
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 15px;
-    color: #344054;
-    margin: 12px 0;
+[data-testid="stExpander"] {
+    background: white !important;
+    border: 1px solid #dbe3ef !important;
+    border-radius: 12px !important;
 }
 
-.stAlert, [data-testid="stNotification"] {
-    background: #f8fafc !important;
-    color: #111827 !important;
+[data-testid="stExpander"] * {
+    color: #172033 !important;
 }
 
+/* ================= MOBILE ================= */
 
-/* SECTION */
+@media (max-width: 768px) {
 
-.section {
-    font-size: 22px;
-    font-weight: 800;
-    margin-top: 28px;
-    margin-bottom: 12px;
-    color: #111827;
+    .hero {
+        padding: 22px;
+    }
+
+    .hero h1 {
+        font-size: 25px;
+    }
+
+    .hero p {
+        font-size: 13px;
+    }
+
+    .section-title {
+        font-size: 20px;
+    }
+
+    .kpi {
+        margin-bottom: 10px;
+    }
+
 }
-
-
-/* STATUS */
-
-.status-red    { color: #dc2626; font-weight: 800; }
-.status-orange { color: #ea580c; font-weight: 800; }
-.status-purple { color: #7c3aed; font-weight: 800; }
-.status-green  { color: #16a34a; font-weight: 800; }
 
 </style>
 """, unsafe_allow_html=True)
@@ -355,7 +372,7 @@ def amount(x):
 
 
 # =========================================================
-# COLUMN DETECTION
+# COLUMN ALIASES
 # =========================================================
 
 ALIASES = {
@@ -491,7 +508,6 @@ def read_excel(file):
     excel = pd.ExcelFile(file)
 
     all_rows = []
-
     sheets = []
 
     for sheet in excel.sheet_names:
@@ -539,31 +555,27 @@ def read_excel(file):
 
 
 # =========================================================
-# STANDARDIZE DATA
+# STANDARDIZE
 # =========================================================
 
 def standardize(df):
 
     result = pd.DataFrame()
-
     c = {}
 
     for key in ALIASES:
+
         c[key] = find_column(
             df,
             ALIASES[key]
         )
 
-    # GSTIN
-
     if c["GSTIN"]:
-        result["GSTIN"] = df[c["GSTIN"]].apply(
-            clean_gstin
-        )
+        result["GSTIN"] = df[
+            c["GSTIN"]
+        ].apply(clean_gstin)
     else:
         result["GSTIN"] = ""
-
-    # Invoice
 
     if c["Invoice"]:
         result["Invoice Number"] = df[
@@ -571,8 +583,6 @@ def standardize(df):
         ].apply(clean_invoice)
     else:
         result["Invoice Number"] = ""
-
-    # Date
 
     if c["Date"]:
         result["Invoice Date"] = pd.to_datetime(
@@ -582,16 +592,12 @@ def standardize(df):
     else:
         result["Invoice Date"] = pd.NaT
 
-    # Party
-
     if c["Party"]:
         result["Party Name"] = df[
             c["Party"]
         ].apply(clean_text)
     else:
         result["Party Name"] = ""
-
-    # Taxable
 
     if c["Taxable"]:
         result["Taxable Value"] = df[
@@ -600,16 +606,12 @@ def standardize(df):
     else:
         result["Taxable Value"] = 0.0
 
-    # IGST
-
     if c["IGST"]:
         result["IGST"] = df[
             c["IGST"]
         ].apply(amount)
     else:
         result["IGST"] = 0.0
-
-    # CGST
 
     if c["CGST"]:
         result["CGST"] = df[
@@ -618,16 +620,12 @@ def standardize(df):
     else:
         result["CGST"] = 0.0
 
-    # SGST
-
     if c["SGST"]:
         result["SGST"] = df[
             c["SGST"]
         ].apply(amount)
     else:
         result["SGST"] = 0.0
-
-    # Invoice Value
 
     if c["InvoiceValue"]:
 
@@ -644,16 +642,12 @@ def standardize(df):
             + result["SGST"]
         )
 
-    # Source sheet
-
     if "_SHEET" in df.columns:
         result["Source Sheet"] = df[
             "_SHEET"
         ]
     else:
         result["Source Sheet"] = ""
-
-    # Remove blank records
 
     result = result[
         (result["GSTIN"] != "")
@@ -699,8 +693,6 @@ def reconcile(two_b, books, tolerance):
 
     for _, row in result.iterrows():
 
-        # Missing in 2B
-
         if row["_merge"] == "left_only":
 
             statuses.append("Missing in 2B")
@@ -711,8 +703,6 @@ def reconcile(two_b, books, tolerance):
                 + row["SGST_Books"]
             )
 
-        # Missing in Books
-
         elif row["_merge"] == "right_only":
 
             statuses.append("Missing in Books")
@@ -722,8 +712,6 @@ def reconcile(two_b, books, tolerance):
                 + row["CGST_2B"]
                 + row["SGST_2B"]
             )
-
-        # Both available
 
         else:
 
@@ -775,13 +763,9 @@ def reconcile(two_b, books, tolerance):
 
             else:
 
-                statuses.append(
-                    "Value Mismatch"
-                )
+                statuses.append("Value Mismatch")
 
-            differences.append(
-                total_diff
-            )
+            differences.append(total_diff)
 
     result["Status"] = statuses
     result["ITC Difference"] = differences
@@ -790,7 +774,7 @@ def reconcile(two_b, books, tolerance):
 
 
 # =========================================================
-# DISPLAY TABLE
+# DISPLAY
 # =========================================================
 
 def prepare_display(df):
@@ -847,17 +831,25 @@ def prepare_display(df):
     out["SGST - Books"] = col("SGST_Books")
     out["SGST - 2B"] = col("SGST_2B")
 
-    out["Invoice Value - Books"] = col("Invoice Value_Books")
-    out["Invoice Value - 2B"] = col("Invoice Value_2B")
+    out["Invoice Value - Books"] = col(
+        "Invoice Value_Books"
+    )
 
-    out["ITC Difference"] = col("ITC Difference")
+    out["Invoice Value - 2B"] = col(
+        "Invoice Value_2B"
+    )
+
+    out["ITC Difference"] = col(
+        "ITC Difference"
+    )
+
     out["Status"] = col("Status")
 
     return out.reset_index(drop=True)
 
 
 # =========================================================
-# HTML TABLE
+# TABLE
 # =========================================================
 
 def show_table(df):
@@ -866,24 +858,20 @@ def show_table(df):
 
     if display.empty:
 
-        st.info("Is category mein koi invoice nahi hai.")
+        st.info(
+            "Is category mein koi invoice nahi hai."
+        )
 
         return
 
-    # Dates
+    display["Invoice Date"] = pd.to_datetime(
+        display["Invoice Date"],
+        errors="coerce"
+    ).dt.strftime("%d-%m-%Y")
 
-    if "Invoice Date" in display.columns:
-
-        display["Invoice Date"] = pd.to_datetime(
-            display["Invoice Date"],
-            errors="coerce"
-        ).dt.strftime("%d-%m-%Y")
-
-        display["Invoice Date"] = display[
-            "Invoice Date"
-        ].fillna("-")
-
-    # Amount formatting
+    display["Invoice Date"] = display[
+        "Invoice Date"
+    ].fillna("-")
 
     amount_columns = [
         "Taxable - Books",
@@ -904,11 +892,10 @@ def show_table(df):
         if c in display.columns:
 
             display[c] = display[c].apply(
-                lambda x: (
-                    f"₹{float(x):,.2f}"
-                    if pd.notna(x)
-                    else "-"
-                )
+                lambda x:
+                f"₹{float(x):,.2f}"
+                if pd.notna(x)
+                else "-"
             )
 
     html = display.to_html(
@@ -971,9 +958,13 @@ def create_excel(result):
 # =========================================================
 
 st.markdown("""
-<div class="header">
-<h1>GST Reconciliation Pro</h1>
-<p>GST 2B vs Books • ITC Reconciliation • Invoice Exception Analysis</p>
+<div class="hero">
+    <h1>🧾 GST Reconciliation Pro</h1>
+    <p>
+        GST 2B vs Books &nbsp;•&nbsp;
+        ITC Reconciliation &nbsp;•&nbsp;
+        Invoice Exception Analysis
+    </p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -995,29 +986,66 @@ with st.sidebar:
 
     st.divider()
 
-    st.markdown("### Matching Key")
+    st.markdown("### 🔑 Matching Key")
 
-    st.info("GSTIN + Invoice Number")
+    st.info(
+        "GSTIN + Invoice Number"
+    )
+
+    st.divider()
+
+    st.markdown("### 📌 Status")
+
+    st.caption(
+        "🟢 Matched\n\n"
+        "🔴 Missing in 2B\n\n"
+        "🟠 Missing in Books\n\n"
+        "🟣 Value Mismatch"
+    )
 
 
 # =========================================================
-# UPLOAD
+# FILE UPLOAD
 # =========================================================
+
+st.markdown(
+    '<div class="section-title">📂 Upload GST Data</div>',
+    unsafe_allow_html=True
+)
 
 u1, u2 = st.columns(2)
 
 with u1:
-    st.markdown("### 📥 GST 2B File")
+
+    st.markdown("""
+    <div class="upload-card">
+        <div class="upload-title">📥 GST 2B File</div>
+        <div class="upload-subtitle">
+            Upload your GST portal 2B Excel file.
+            Multiple sheets are supported.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
     two_b_file = st.file_uploader(
-        "Upload 2B Excel",
+        "Choose GST 2B Excel",
         type=["xlsx", "xls"],
         key="two_b_file"
     )
 
 with u2:
-    st.markdown("### 📚 Books File")
+
+    st.markdown("""
+    <div class="upload-card">
+        <div class="upload-title">📚 Books File</div>
+        <div class="upload-subtitle">
+            Upload your purchase/books Excel file.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
     books_file = st.file_uploader(
-        "Upload Books Excel",
+        "Choose Books Excel",
         type=["xlsx", "xls"],
         key="books_file"
     )
@@ -1032,34 +1060,69 @@ if two_b_file and books_file:
     st.markdown("")
 
     if st.button(
-        "🚀 START RECONCILIATION",
+        "🚀 START GST RECONCILIATION",
         type="primary",
         use_container_width=True
     ):
 
         try:
 
-            with st.spinner("Analysing Excel files..."):
+            with st.spinner(
+                "Analysing GST 2B and Books..."
+            ):
 
-                two_b_raw, two_b_sheets = read_excel(two_b_file)
-                books_raw, books_sheets = read_excel(books_file)
+                two_b_raw, two_b_sheets = read_excel(
+                    two_b_file
+                )
 
-                two_b = standardize(two_b_raw)
-                books = standardize(books_raw)
+                books_raw, books_sheets = read_excel(
+                    books_file
+                )
 
-                result = reconcile(two_b, books, tolerance)
+                two_b = standardize(
+                    two_b_raw
+                )
 
-                st.session_state["reco_result"] = result
-                st.session_state["reco_two_b"] = two_b
-                st.session_state["reco_books"] = books
-                st.session_state["reco_two_b_sheets"] = two_b_sheets
-                st.session_state["reco_books_sheets"] = books_sheets
+                books = standardize(
+                    books_raw
+                )
 
-            st.success("✅ Reconciliation completed successfully.")
+                result = reconcile(
+                    two_b,
+                    books,
+                    tolerance
+                )
+
+                st.session_state[
+                    "reco_result"
+                ] = result
+
+                st.session_state[
+                    "reco_two_b"
+                ] = two_b
+
+                st.session_state[
+                    "reco_books"
+                ] = books
+
+                st.session_state[
+                    "reco_two_b_sheets"
+                ] = two_b_sheets
+
+                st.session_state[
+                    "reco_books_sheets"
+                ] = books_sheets
+
+            st.success(
+                "✅ GST Reconciliation completed successfully."
+            )
 
         except Exception as e:
 
-            st.error("❌ Error while processing files")
+            st.error(
+                "❌ Error while processing files."
+            )
+
             st.exception(e)
 
 
@@ -1069,35 +1132,85 @@ if two_b_file and books_file:
 
 if "reco_result" in st.session_state:
 
-    result = st.session_state["reco_result"]
-    two_b = st.session_state["reco_two_b"]
-    books = st.session_state["reco_books"]
+    result = st.session_state[
+        "reco_result"
+    ]
+
+    two_b = st.session_state[
+        "reco_two_b"
+    ]
+
+    books = st.session_state[
+        "reco_books"
+    ]
 
     # COUNTS
 
     total = len(result)
-    matched = (result["Status"] == "Matched").sum()
-    missing_2b = (result["Status"] == "Missing in 2B").sum()
-    missing_books = (result["Status"] == "Missing in Books").sum()
-    mismatch = (result["Status"] == "Value Mismatch").sum()
+
+    matched = (
+        result["Status"] == "Matched"
+    ).sum()
+
+    missing_2b = (
+        result["Status"] == "Missing in 2B"
+    ).sum()
+
+    missing_books = (
+        result["Status"] == "Missing in Books"
+    ).sum()
+
+    mismatch = (
+        result["Status"] == "Value Mismatch"
+    ).sum()
 
     # =====================================================
     # KPI
     # =====================================================
 
     st.markdown(
-        '<div class="section">📊 Reconciliation Overview</div>',
+        '<div class="section-title">📊 Reconciliation Dashboard</div>',
         unsafe_allow_html=True
     )
 
     c1, c2, c3, c4, c5 = st.columns(5)
 
     cards = [
-        (c1, "TOTAL INVOICES", total, "All analysed records", "blue"),
-        (c2, "MATCHED", matched, "Successfully matched", "green"),
-        (c3, "MISSING IN 2B", missing_2b, "Books → not in 2B", "red"),
-        (c4, "MISSING IN BOOKS", missing_books, "2B → not in Books", "orange"),
-        (c5, "VALUE MISMATCH", mismatch, "Tax/value difference", "purple")
+        (
+            c1,
+            "TOTAL INVOICES",
+            total,
+            "All analysed records",
+            "kpi-blue"
+        ),
+        (
+            c2,
+            "MATCHED",
+            matched,
+            "Successfully matched",
+            "kpi-green"
+        ),
+        (
+            c3,
+            "MISSING IN 2B",
+            missing_2b,
+            "Books → not in 2B",
+            "kpi-red"
+        ),
+        (
+            c4,
+            "MISSING IN BOOKS",
+            missing_books,
+            "2B → not in Books",
+            "kpi-orange"
+        ),
+        (
+            c5,
+            "VALUE MISMATCH",
+            mismatch,
+            "Tax/value difference",
+            "kpi-purple"
+        )
     ]
 
     for col, title, number, desc, colour in cards:
@@ -1107,77 +1220,144 @@ if "reco_result" in st.session_state:
             st.markdown(
                 f"""
                 <div class="kpi {colour}">
-                    <div class="kpi-title">{title}</div>
-                    <div class="kpi-number">{number:,}</div>
-                    <div style="color:#667085;font-size:12px;">{desc}</div>
+                    <div class="kpi-label">
+                        {title}
+                    </div>
+
+                    <div class="kpi-value">
+                        {number:,}
+                    </div>
+
+                    <div class="kpi-description">
+                        {desc}
+                    </div>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
 
+
     # =====================================================
-    # CATEGORY BUTTONS
+    # EXCEPTIONS
     # =====================================================
 
     st.markdown(
-        '<div class="section">🔎 Invoice Exceptions</div>',
+        '<div class="section-title">🔎 Invoice Analysis</div>',
         unsafe_allow_html=True
     )
 
     b1, b2, b3, b4 = st.columns(4)
 
     with b1:
-        if st.button(f"🔴 Missing in 2B  |  {missing_2b}", key="category_2b", use_container_width=True):
-            st.session_state["selected_status"] = "Missing in 2B"
+
+        if st.button(
+            f"🔴 Missing in 2B • {missing_2b}",
+            key="category_2b",
+            use_container_width=True
+        ):
+
+            st.session_state[
+                "selected_status"
+            ] = "Missing in 2B"
 
     with b2:
-        if st.button(f"🟠 Missing in Books  |  {missing_books}", key="category_books", use_container_width=True):
-            st.session_state["selected_status"] = "Missing in Books"
+
+        if st.button(
+            f"🟠 Missing in Books • {missing_books}",
+            key="category_books",
+            use_container_width=True
+        ):
+
+            st.session_state[
+                "selected_status"
+            ] = "Missing in Books"
 
     with b3:
-        if st.button(f"🟣 Value Mismatch  |  {mismatch}", key="category_mismatch", use_container_width=True):
-            st.session_state["selected_status"] = "Value Mismatch"
+
+        if st.button(
+            f"🟣 Value Mismatch • {mismatch}",
+            key="category_mismatch",
+            use_container_width=True
+        ):
+
+            st.session_state[
+                "selected_status"
+            ] = "Value Mismatch"
 
     with b4:
-        if st.button(f"🟢 Matched  |  {matched}", key="category_matched", use_container_width=True):
-            st.session_state["selected_status"] = "Matched"
+
+        if st.button(
+            f"🟢 Matched • {matched}",
+            key="category_matched",
+            use_container_width=True
+        ):
+
+            st.session_state[
+                "selected_status"
+            ] = "Matched"
+
 
     if "selected_status" not in st.session_state:
-        st.session_state["selected_status"] = "Missing in 2B"
 
-    selected = st.session_state["selected_status"]
+        st.session_state[
+            "selected_status"
+        ] = "Missing in 2B"
 
-    # =====================================================
-    # SELECTED LIST
-    # =====================================================
 
-    detail = result[result["Status"] == selected].copy()
+    selected = st.session_state[
+        "selected_status"
+    ]
+
+    detail = result[
+        result["Status"] == selected
+    ].copy()
+
 
     st.markdown(
-        f'<div class="section">📋 {selected} — {len(detail):,} Invoices</div>',
+        f"""
+        <div class="section-title">
+            📋 {selected} — {len(detail):,} Invoices
+        </div>
+        """,
         unsafe_allow_html=True
     )
 
+
     info_text = {
-        "Missing in 2B": "These invoices are present in Books but are not available in GST 2B.",
-        "Missing in Books": "These invoices are present in GST 2B but are not recorded in Books.",
-        "Value Mismatch": "GSTIN and invoice number matched, but taxable/tax/invoice values are different.",
-        "Matched": "These invoices successfully matched between Books and GST 2B."
+
+        "Missing in 2B":
+        "These invoices are present in Books but are not available in GST 2B.",
+
+        "Missing in Books":
+        "These invoices are present in GST 2B but are not recorded in Books.",
+
+        "Value Mismatch":
+        "GSTIN and invoice number matched, but taxable/tax/invoice values are different.",
+
+        "Matched":
+        "These invoices successfully matched between Books and GST 2B."
     }
 
+
     st.markdown(
-        f'<div class="info-box">{info_text.get(selected, "")}</div>',
+        f"""
+        <div class="info-box">
+            <b>ℹ️ Analysis:</b><br>
+            {info_text.get(selected, "")}
+        </div>
+        """,
         unsafe_allow_html=True
     )
 
     show_table(detail)
+
 
     # =====================================================
     # ITC ANALYSIS
     # =====================================================
 
     st.markdown(
-        '<div class="section">💰 ITC Analysis</div>',
+        '<div class="section-title">💰 ITC Analysis</div>',
         unsafe_allow_html=True
     )
 
@@ -1189,48 +1369,119 @@ if "reco_result" in st.session_state:
     t_cgst = two_b["CGST"].sum()
     t_sgst = two_b["SGST"].sum()
 
-    books_itc = b_igst + b_cgst + b_sgst
-    two_b_itc = t_igst + t_cgst + t_sgst
-    itc_difference = books_itc - two_b_itc
+    books_itc = (
+        b_igst
+        + b_cgst
+        + b_sgst
+    )
+
+    two_b_itc = (
+        t_igst
+        + t_cgst
+        + t_sgst
+    )
+
+    itc_difference = (
+        books_itc
+        - two_b_itc
+    )
+
 
     i1, i2, i3 = st.columns(3)
 
     with i1:
-        st.metric("Books Total ITC", f"₹{books_itc:,.2f}")
+
+        st.metric(
+            "📚 Books Total ITC",
+            f"₹{books_itc:,.2f}"
+        )
 
     with i2:
-        st.metric("GST 2B Total ITC", f"₹{two_b_itc:,.2f}")
+
+        st.metric(
+            "📥 GST 2B Total ITC",
+            f"₹{two_b_itc:,.2f}"
+        )
 
     with i3:
-        st.metric("ITC Difference", f"₹{itc_difference:,.2f}")
+
+        st.metric(
+            "⚖️ ITC Difference",
+            f"₹{itc_difference:,.2f}"
+        )
+
 
     # =====================================================
     # TAX TABLE
     # =====================================================
 
     tax_df = pd.DataFrame({
-        "Tax Component": ["IGST", "CGST", "SGST", "TOTAL ITC"],
-        "Books": [b_igst, b_cgst, b_sgst, books_itc],
-        "GST 2B": [t_igst, t_cgst, t_sgst, two_b_itc],
-        "Difference": [b_igst - t_igst, b_cgst - t_cgst, b_sgst - t_sgst, itc_difference]
+
+        "Tax Component":
+        [
+            "IGST",
+            "CGST",
+            "SGST",
+            "TOTAL ITC"
+        ],
+
+        "Books":
+        [
+            b_igst,
+            b_cgst,
+            b_sgst,
+            books_itc
+        ],
+
+        "GST 2B":
+        [
+            t_igst,
+            t_cgst,
+            t_sgst,
+            two_b_itc
+        ],
+
+        "Difference":
+        [
+            b_igst - t_igst,
+            b_cgst - t_cgst,
+            b_sgst - t_sgst,
+            itc_difference
+        ]
     })
+
 
     tax_display = tax_df.copy()
 
-    for c in ["Books", "GST 2B", "Difference"]:
-        tax_display[c] = tax_display[c].apply(lambda x: f"₹{x:,.2f}")
+    for c in [
+        "Books",
+        "GST 2B",
+        "Difference"
+    ]:
+
+        tax_display[c] = tax_display[
+            c
+        ].apply(
+            lambda x:
+            f"₹{x:,.2f}"
+        )
+
 
     st.markdown(
-        tax_display.to_html(index=False, classes="custom-table"),
+        tax_display.to_html(
+            index=False,
+            classes="custom-table"
+        ),
         unsafe_allow_html=True
     )
+
 
     # =====================================================
     # CHARTS
     # =====================================================
 
     st.markdown(
-        '<div class="section">📈 Visual Analysis</div>',
+        '<div class="section-title">📈 Visual Analysis</div>',
         unsafe_allow_html=True
     )
 
@@ -1239,100 +1490,209 @@ if "reco_result" in st.session_state:
     with chart1:
 
         status_data = pd.DataFrame({
-            "Status": ["Matched", "Missing in 2B", "Missing in Books", "Value Mismatch"],
-            "Count": [matched, missing_2b, missing_books, mismatch]
+
+            "Status":
+            [
+                "Matched",
+                "Missing in 2B",
+                "Missing in Books",
+                "Value Mismatch"
+            ],
+
+            "Count":
+            [
+                matched,
+                missing_2b,
+                missing_books,
+                mismatch
+            ]
         })
 
+
         fig = px.pie(
-            status_data, names="Status", values="Count",
-            hole=0.55, title="Reconciliation Status"
+            status_data,
+            names="Status",
+            values="Count",
+            hole=0.58,
+            title="Reconciliation Status"
         )
 
-        fig.update_traces(textinfo="percent+label")
+
+        fig.update_traces(
+            textinfo="percent+label"
+        )
+
 
         fig.update_layout(
             paper_bgcolor="white",
             plot_bgcolor="white",
-            font_color="#111827"
+            font_color="#172033",
+            margin=dict(
+                l=20,
+                r=20,
+                t=60,
+                b=20
+            )
         )
 
-        st.plotly_chart(fig, use_container_width=True)
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
+
 
     with chart2:
 
         itc_data = pd.DataFrame({
-            "Tax": ["IGST", "CGST", "SGST"],
-            "Amount": [t_igst, t_cgst, t_sgst]
+
+            "Tax":
+            [
+                "IGST",
+                "CGST",
+                "SGST"
+            ],
+
+            "Amount":
+            [
+                t_igst,
+                t_cgst,
+                t_sgst
+            ]
         })
 
+
         fig2 = px.pie(
-            itc_data, names="Tax", values="Amount",
-            hole=0.55, title="GST 2B ITC Distribution"
+            itc_data,
+            names="Tax",
+            values="Amount",
+            hole=0.58,
+            title="GST 2B ITC Distribution"
         )
 
-        fig2.update_traces(textinfo="percent+label")
+
+        fig2.update_traces(
+            textinfo="percent+label"
+        )
+
 
         fig2.update_layout(
             paper_bgcolor="white",
             plot_bgcolor="white",
-            font_color="#111827"
+            font_color="#172033",
+            margin=dict(
+                l=20,
+                r=20,
+                t=60,
+                b=20
+            )
         )
 
-        st.plotly_chart(fig2, use_container_width=True)
+
+        st.plotly_chart(
+            fig2,
+            use_container_width=True
+        )
+
 
     # =====================================================
     # SHEETS
     # =====================================================
 
-    with st.expander("📂 Excel Sheets Automatically Analysed"):
+    with st.expander(
+        "📂 Excel Sheets Automatically Analysed"
+    ):
 
         s1, s2 = st.columns(2)
 
         with s1:
-            st.markdown("### GST 2B")
-            for sheet in st.session_state["reco_two_b_sheets"]:
-                st.write("•", sheet)
+
+            st.markdown(
+                "### 📥 GST 2B"
+            )
+
+            for sheet in st.session_state[
+                "reco_two_b_sheets"
+            ]:
+
+                st.write(
+                    "•",
+                    sheet
+                )
 
         with s2:
-            st.markdown("### Books")
-            for sheet in st.session_state["reco_books_sheets"]:
-                st.write("•", sheet)
+
+            st.markdown(
+                "### 📚 Books"
+            )
+
+            for sheet in st.session_state[
+                "reco_books_sheets"
+            ]:
+
+                st.write(
+                    "•",
+                    sheet
+                )
+
 
     # =====================================================
     # EXPORT
     # =====================================================
 
     st.markdown(
-        '<div class="section">📥 Export Report</div>',
+        '<div class="section-title">📥 Export Report</div>',
         unsafe_allow_html=True
     )
 
-    excel_file = create_excel(result)
+
+    excel_file = create_excel(
+        result
+    )
+
 
     st.download_button(
-        "📊 Download Complete Excel Report",
+        "📊 DOWNLOAD COMPLETE EXCEL REPORT",
         data=excel_file,
         file_name="GST_Reconciliation_Report.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         use_container_width=True
     )
 
+
+# =========================================================
+# WELCOME SCREEN
+# =========================================================
+
 else:
 
-    st.markdown(
-        """
-        <div class="info-box">
+    st.markdown("""
+    <div class="info-box">
+
         <h3>👋 Welcome to GST Reconciliation Pro</h3>
-        Upload your <b>GST 2B</b> and <b>Books</b> Excel files.
-        <br><br>
-        The system will automatically identify useful GST columns
-        and reconcile invoices using:
-        <br><br>
-        <b>GSTIN + Invoice Number</b>
-        <br><br>
-        It will identify Missing in 2B, Missing in Books,
-        Value Mismatch and Matched invoices.
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+
+        <p>
+        Upload your <b>GST 2B</b> and
+        <b>Books</b> Excel files to begin reconciliation.
+        </p>
+
+        <p>
+        The system automatically detects GST columns
+        and matches invoices using:
+        </p>
+
+        <h3>🔑 GSTIN + Invoice Number</h3>
+
+        <p>
+        The software identifies:
+        </p>
+
+        <p>
+        🔴 Missing in 2B<br>
+        🟠 Missing in Books<br>
+        🟣 Value Mismatch<br>
+        🟢 Matched
+        </p>
+
+    </div>
+    """, unsafe_allow_html=True)
