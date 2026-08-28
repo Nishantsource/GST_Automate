@@ -556,22 +556,6 @@ def prepare_display(df):
     return output.reset_index(drop=True)
 
 
-def apply_match_overrides(display_df):
-    """Merge in any manually typed-in Match Suggestion / remark text the
-    user has entered in the editable table, keyed by GSTIN + Invoice Number
-    so it survives switching between status filters, searching, and even
-    flows into the final Excel export."""
-    overrides = st.session_state.get("match_suggestion_overrides", {})
-    if not overrides or display_df.empty:
-        return display_df
-    keys = display_df["GSTIN"] + "|" + display_df["Invoice Number"]
-    display_df = display_df.copy()
-    display_df["Match Suggestion"] = [
-        overrides.get(k, v) for k, v in zip(keys, display_df["Match Suggestion"])
-    ]
-    return display_df
-
-
 def vendor_summary(display_df):
     """GSTIN-wise rollup — the fastest way to see which vendors are causing
     the most reconciliation trouble."""
@@ -644,7 +628,6 @@ def _format_data_rows(ws, ncols, status_col_index=None):
 
 def create_excel(result, quality_2b, quality_books, tolerance):
     display = prepare_display(result)
-    display = apply_match_overrides(display)  # carry forward any manually typed remarks
     v_summary = vendor_summary(display)
 
     total = len(display)
@@ -864,7 +847,6 @@ if two_b_file and books_file and "two_b_raw" in st.session_state:
                 st.session_state["quality_books"] = quality_books
                 st.session_state["tolerance_used"] = tolerance
                 st.session_state["selected_status"] = "Missing in 2B"
-                st.session_state["match_suggestion_overrides"] = {}
 
             st.success("✅ GST Reconciliation completed successfully.")
 
@@ -987,7 +969,6 @@ if "result" in st.session_state:
     st.info(explanations[selected_status])
 
     display = prepare_display(detail)
-    display = apply_match_overrides(display)
 
     search_term = st.text_input(
         "🔍 Search within this list (GSTIN, Invoice No, or Party Name)",
@@ -1007,32 +988,9 @@ if "result" in st.session_state:
             )
             display = display[mask]
 
-        st.caption("✏️ 'Match Suggestion' column mein khud bhi type kar sakte ho — remarks ya manual match note.")
+        st.dataframe(display, use_container_width=True, hide_index=True)
 
-        edited = st.data_editor(
-            display,
-            use_container_width=True,
-            hide_index=True,
-            disabled=[c for c in display.columns if c != "Match Suggestion"],
-            column_config={
-                "Match Suggestion": st.column_config.TextColumn(
-                    "Match Suggestion / Remarks",
-                    help="Apna remark ya manual match note yahan type karein",
-                    width="large",
-                )
-            },
-            key=f"editor_{selected_status}",
-        )
-
-        # Persist whatever the user typed, keyed by GSTIN+Invoice, so it
-        # survives switching status filters, searching, and export.
-        if not edited.empty:
-            overrides = st.session_state.setdefault("match_suggestion_overrides", {})
-            edit_keys = edited["GSTIN"] + "|" + edited["Invoice Number"]
-            for k, v in zip(edit_keys, edited["Match Suggestion"]):
-                overrides[k] = v
-
-        csv_bytes = edited.to_csv(index=False).encode("utf-8-sig")
+        csv_bytes = display.to_csv(index=False).encode("utf-8-sig")
         st.download_button(
             f"⬇️ Download '{selected_status}' as CSV",
             data=csv_bytes,
@@ -1041,46 +999,6 @@ if "result" in st.session_state:
         )
     else:
         st.success("Is category mein koi invoice nahi hai.")
-
-    if selected_status in ("Missing in 2B", "Missing in Books") and not detail.empty:
-        other_df = two_b if selected_status == "Missing in 2B" else books
-        other_label = "GST 2B" if selected_status == "Missing in 2B" else "Books"
-
-        with st.expander(f"🔎 Manually search {other_label} for a possible match", expanded=False):
-            st.caption(
-                f"Auto-suggestion ne kuch na pakda ho to yahan khud type karke {other_label} "
-                "file mein dhoond lo — GSTIN, Invoice Number, ya Party Name, kisi se bhi search ho jayega."
-            )
-
-            manual_query = st.text_input(
-                f"Type to search in {other_label}",
-                key=f"manual_search_{selected_status}",
-                placeholder="e.g. GSTIN ka part, invoice number, ya vendor ka naam"
-            )
-
-            if manual_query.strip():
-                q = manual_query.strip().lower()
-                other_disp = other_df.copy()
-                match_mask = (
-                    other_disp["GSTIN"].str.lower().str.contains(q, na=False) |
-                    other_disp["Invoice Number"].str.lower().str.contains(q, na=False) |
-                    other_disp["Party Name"].str.lower().str.contains(q, na=False)
-                )
-                found_cols = ["GSTIN", "Party Name", "Invoice Number", "Invoice Date",
-                              "Taxable Value", "IGST", "CGST", "SGST", "Invoice Value"]
-                found = other_disp.loc[match_mask, found_cols].copy()
-
-                if not found.empty:
-                    found["Invoice Date"] = pd.to_datetime(
-                        found["Invoice Date"], errors="coerce"
-                    ).dt.strftime("%d-%m-%Y")
-                    found["Invoice Date"] = found["Invoice Date"].fillna("-")
-                    st.dataframe(found, use_container_width=True, hide_index=True)
-                    st.caption(f"{len(found)} possible record(s) mile {other_label} mein.")
-                else:
-                    st.warning(f"Koi record nahi mila jo '{manual_query}' se match kare.")
-            else:
-                st.caption("Search shuru karne ke liye upar type karo.")
 
     # =====================================================
     # VENDOR-WISE SUMMARY
