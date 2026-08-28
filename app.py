@@ -160,6 +160,178 @@ st.markdown("""
     font-size: 11px;
     font-weight: 700;
 }
+
+
+/* =========================================================
+   MOBILE RESPONSIVE FIX
+   ONLY MOBILE DISPLAY CHANGES
+   ========================================================= */
+
+html,
+body,
+[class*="css"] {
+    -webkit-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
+}
+
+@media (max-width: 768px) {
+
+    .stApp {
+        min-width: 0 !important;
+        width: 100% !important;
+        overflow-x: hidden !important;
+    }
+
+    .main .block-container {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+        padding-top: 1rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    p,
+    span,
+    div,
+    label {
+        -webkit-text-size-adjust: 100% !important;
+    }
+
+    .hero {
+        padding: 20px 16px !important;
+        border-radius: 16px !important;
+    }
+
+    .hero h1 {
+        font-size: 27px !important;
+        line-height: 1.2 !important;
+        display: block !important;
+        visibility: visible !important;
+    }
+
+    .hero p {
+        font-size: 14px !important;
+        line-height: 1.5 !important;
+        display: block !important;
+        visibility: visible !important;
+    }
+
+    .section-title {
+        font-size: 20px !important;
+        line-height: 1.3 !important;
+    }
+
+    .kpi {
+        min-height: 105px !important;
+        padding: 15px !important;
+        margin-bottom: 10px !important;
+    }
+
+    .kpi-title {
+        font-size: 11px !important;
+    }
+
+    .kpi-value {
+        font-size: 25px !important;
+    }
+
+    .kpi-desc {
+        font-size: 11px !important;
+    }
+
+    .info-box,
+    .warn-box {
+        font-size: 13px !important;
+        line-height: 1.5 !important;
+    }
+
+    [data-testid="stDataFrame"],
+    [data-testid="stDataEditor"] {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    [data-testid="stFileUploaderDropzone"] {
+        width: 100% !important;
+        min-height: 120px !important;
+    }
+
+    .stButton button,
+    .stDownloadButton button {
+        min-height: 44px !important;
+        font-size: 14px !important;
+    }
+
+    input,
+    textarea,
+    select {
+        font-size: 16px !important;
+    }
+
+    .js-plotly-plot,
+    .plot-container,
+    .plotly {
+        max-width: 100% !important;
+    }
+
+    [data-testid="stSidebar"] {
+        min-width: 280px !important;
+        max-width: 85vw !important;
+    }
+
+    [data-testid="column"] {
+        min-width: 0 !important;
+    }
+
+    [data-testid="stMarkdownContainer"],
+    [data-testid="stText"],
+    [data-testid="stCaptionContainer"],
+    [data-testid="stAlert"],
+    [data-testid="stExpander"] {
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+}
+
+
+/* =========================================================
+   EXTRA SMALL PHONE FIX
+   ========================================================= */
+
+@media (max-width: 480px) {
+
+    .main .block-container {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+
+    .hero h1 {
+        font-size: 24px !important;
+    }
+
+    .hero p {
+        font-size: 13px !important;
+    }
+
+    .section-title {
+        font-size: 18px !important;
+    }
+
+    .kpi {
+        padding: 13px !important;
+    }
+
+    .kpi-value {
+        font-size: 23px !important;
+    }
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -405,11 +577,6 @@ def auto_detect(df):
 # =========================================================
 
 def detect_header_row(raw_df, max_scan_rows=15):
-    """
-    Existing header detection logic preserved.
-    Scans first rows and finds a row containing
-    both GSTIN and Invoice style headers.
-    """
 
     scan_limit = min(max_scan_rows, len(raw_df))
 
@@ -455,6 +622,7 @@ def detect_header_row(raw_df, max_scan_rows=15):
 # =========================================================
 
 def read_excel(file):
+
     excel = pd.ExcelFile(file)
 
     all_data = []
@@ -535,14 +703,10 @@ def read_excel(file):
 
 
 # =========================================================
-# NEW PORTAL-SPECIFIC READER
-# EXISTING read_excel() IS NOT TOUCHED
+# PORTAL-SPECIFIC READER
 # =========================================================
 
 def portal_sheet_type(sheet_name):
-    """
-    Detects GST portal 2B sheet type from sheet name.
-    """
 
     name = normalize_column(sheet_name)
 
@@ -576,18 +740,6 @@ def portal_sheet_type(sheet_name):
 
 
 def read_portal_2b(file):
-    """
-    Separate portal reader.
-
-    IMPORTANT:
-    Existing read_excel() remains untouched.
-
-    Portal logic:
-    - B2B sheet is the primary 2B reconciliation source.
-    - CDN / credit-debit note sheets are stored separately.
-    - RCM sheets are stored separately.
-    - ITC Summary and other portal sheets are not mixed into B2B.
-    """
 
     excel = pd.ExcelFile(file)
 
@@ -620,8 +772,6 @@ def read_portal_2b(file):
 
             if header_row_idx is None:
 
-                # Some portal sheets may have slightly different
-                # structures. Try a normal header read as fallback.
                 try:
                     temp = pd.read_excel(
                         file,
@@ -666,10 +816,6 @@ def read_portal_2b(file):
                 ALIASES["Invoice"]
             )
 
-            # -------------------------------------------------
-            # B2B
-            # -------------------------------------------------
-
             if sheet_type == "B2B":
 
                 if gstin_column and invoice_column:
@@ -678,18 +824,10 @@ def read_portal_2b(file):
                 else:
                     skipped_sheets.append(sheet)
 
-            # -------------------------------------------------
-            # CDN
-            # -------------------------------------------------
-
             elif sheet_type == "CDN":
 
                 cdn_frames.append(df)
                 cdn_sheets.append(sheet)
-
-            # -------------------------------------------------
-            # RCM
-            # -------------------------------------------------
 
             elif sheet_type == "RCM":
 
@@ -702,10 +840,6 @@ def read_portal_2b(file):
 
         except Exception:
             skipped_sheets.append(sheet)
-
-    # ---------------------------------------------------------
-    # If no explicit B2B sheet found, fallback to existing reader
-    # ---------------------------------------------------------
 
     if not b2b_frames:
 
@@ -724,10 +858,6 @@ def read_portal_2b(file):
             ignore_index=True
         )
 
-    # ---------------------------------------------------------
-    # CDN
-    # ---------------------------------------------------------
-
     if cdn_frames:
 
         cdn_raw = pd.concat(
@@ -738,10 +868,6 @@ def read_portal_2b(file):
     else:
 
         cdn_raw = pd.DataFrame()
-
-    # ---------------------------------------------------------
-    # RCM
-    # ---------------------------------------------------------
 
     if rcm_frames:
 
@@ -794,8 +920,6 @@ def standardize(df, overrides=None):
                 ALIASES[key]
             )
 
-    # GSTIN
-
     if detected["GSTIN"]:
         result["GSTIN"] = df[
             detected["GSTIN"]
@@ -803,16 +927,12 @@ def standardize(df, overrides=None):
     else:
         result["GSTIN"] = ""
 
-    # Invoice
-
     if detected["Invoice"]:
         result["Invoice Number"] = df[
             detected["Invoice"]
         ].apply(clean_invoice)
     else:
         result["Invoice Number"] = ""
-
-    # Date
 
     if detected["Date"]:
         result["Invoice Date"] = pd.to_datetime(
@@ -822,16 +942,12 @@ def standardize(df, overrides=None):
     else:
         result["Invoice Date"] = pd.NaT
 
-    # Party
-
     if detected["Party"]:
         result["Party Name"] = df[
             detected["Party"]
         ].apply(clean_text)
     else:
         result["Party Name"] = ""
-
-    # Taxable
 
     if detected["Taxable"]:
         result["Taxable Value"] = df[
@@ -840,16 +956,12 @@ def standardize(df, overrides=None):
     else:
         result["Taxable Value"] = 0.0
 
-    # IGST
-
     if detected["IGST"]:
         result["IGST"] = df[
             detected["IGST"]
         ].apply(clean_amount)
     else:
         result["IGST"] = 0.0
-
-    # CGST
 
     if detected["CGST"]:
         result["CGST"] = df[
@@ -858,16 +970,12 @@ def standardize(df, overrides=None):
     else:
         result["CGST"] = 0.0
 
-    # SGST
-
     if detected["SGST"]:
         result["SGST"] = df[
             detected["SGST"]
         ].apply(clean_amount)
     else:
         result["SGST"] = 0.0
-
-    # Invoice Value
 
     if detected["InvoiceValue"]:
 
@@ -941,10 +1049,11 @@ def standardize(df, overrides=None):
 
 
 # =========================================================
-# NEW PORTAL NOTE / RCM ANALYSIS
+# PORTAL NOTE / RCM ANALYSIS
 # =========================================================
 
 def find_note_type_column(df):
+
     possible = [
         "Note Type",
         "Document Type",
@@ -961,10 +1070,6 @@ def find_note_type_column(df):
 
 
 def classify_notes(cdn_raw):
-    """
-    Converts portal CDN data into separate Debit Note
-    and Credit Note dataframes.
-    """
 
     if cdn_raw is None or cdn_raw.empty:
         return pd.DataFrame(), pd.DataFrame()
@@ -1008,6 +1113,7 @@ def classify_notes(cdn_raw):
 
 
 def find_rcm_column(df):
+
     possible = [
         "Reverse Charge",
         "Reverse charge",
@@ -1024,10 +1130,6 @@ def find_rcm_column(df):
 
 
 def analyse_rcm(two_b_raw, rcm_raw=None):
-    """
-    RCM can appear inside B2B itself as Reverse Charge = Yes.
-    Separate RCM sheet is also considered if present.
-    """
 
     rcm_b2b = pd.DataFrame()
     rcm_sheet = pd.DataFrame()
@@ -2158,10 +2260,6 @@ if two_b_file and books_file:
 
     try:
 
-        # -----------------------------------------------------
-        # PORTAL 2B
-        # -----------------------------------------------------
-
         if (
             "portal_b2b_raw"
             not in st.session_state
@@ -2232,10 +2330,6 @@ if two_b_file and books_file:
                 "match_suggestion_overrides"
             ] = {}
 
-        # -----------------------------------------------------
-        # BOOKS
-        # -----------------------------------------------------
-
         if (
             "books_raw"
             not in st.session_state
@@ -2278,10 +2372,6 @@ if two_b_file and books_file:
             "books_raw"
         ]
 
-        # =====================================================
-        # COLUMN MAPPING
-        # =====================================================
-
         with st.expander(
             "🔧 Column Mapping (verify or override auto-detection)"
         ):
@@ -2293,10 +2383,6 @@ if two_b_file and books_file:
             )
 
             m1, m2 = st.columns(2)
-
-            # -------------------------------------------------
-            # 2B
-            # -------------------------------------------------
 
             with m1:
 
@@ -2341,10 +2427,6 @@ if two_b_file and books_file:
                         index=default_idx,
                         key=f"2b_{field}"
                     )
-
-            # -------------------------------------------------
-            # BOOKS
-            # -------------------------------------------------
 
             with m2:
 
@@ -2426,12 +2508,6 @@ if (
                 "Analysing GST 2B and Books..."
             ):
 
-                # -------------------------------------------------
-                # IMPORTANT:
-                # Only B2B is used for normal invoice reconciliation.
-                # CDN and RCM remain separate.
-                # -------------------------------------------------
-
                 two_b, quality_2b = standardize(
                     st.session_state[
                         "portal_b2b_raw"
@@ -2464,10 +2540,6 @@ if (
                     tolerance,
                     enable_fuzzy=enable_fuzzy
                 )
-
-                # -------------------------------------------------
-                # PORTAL DOCUMENT ANALYSIS
-                # -------------------------------------------------
 
                 portal_stats = portal_document_stats(
                     st.session_state.get(
@@ -2673,10 +2745,6 @@ if "result" in st.session_state:
         1
     ) if total else 0.0
 
-    # ---------------------------------------------------------
-    # PORTAL STATS
-    # ---------------------------------------------------------
-
     portal_stats = st.session_state.get(
         "portal_stats",
         {
@@ -2700,10 +2768,6 @@ if "result" in st.session_state:
         "rcm_count",
         0
     )
-
-    # ========================================================
-    # DASHBOARD
-    # ========================================================
 
     st.markdown(
         '<div class="section-title">📊 Reconciliation Dashboard</div>',
@@ -2833,7 +2897,7 @@ if "result" in st.session_state:
 
 
     # ========================================================
-    # NEW PORTAL DOCUMENT SUMMARY
+    # PORTAL DOCUMENT SUMMARY
     # ========================================================
 
     st.markdown(
@@ -3299,8 +3363,7 @@ if "result" in st.session_state:
                     |
                     other_disp[
                         "Invoice Number"
-                    ]
-                    .str.lower()
+                    ].str.lower()
                     .str.contains(
                         q,
                         na=False
@@ -3308,8 +3371,7 @@ if "result" in st.session_state:
                     |
                     other_disp[
                         "Party Name"
-                    ]
-                    .str.lower()
+                    ].str.lower()
                     .str.contains(
                         q,
                         na=False
