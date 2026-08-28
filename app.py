@@ -2,10 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-from io import BytesIOimport streamlit as st
-import pandas as pd
-import numpy as np
-import plotly.express as px
 from io import BytesIO
 import re
 import difflib
@@ -13,6 +9,7 @@ import difflib
 from openpyxl import load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
+
 
 # =========================================================
 # PAGE
@@ -23,6 +20,7 @@ st.set_page_config(
     page_icon="🧾",
     layout="wide"
 )
+
 
 # =========================================================
 # CSS
@@ -92,12 +90,29 @@ st.markdown("""
     font-size: 12px;
 }
 
-.blue { border-top: 4px solid #2563eb; }
-.green { border-top: 4px solid #16a34a; }
-.red { border-top: 4px solid #dc2626; }
-.orange { border-top: 4px solid #ea580c; }
-.purple { border-top: 4px solid #7c3aed; }
-.teal { border-top: 4px solid #0d9488; }
+.blue {
+    border-top: 4px solid #2563eb;
+}
+
+.green {
+    border-top: 4px solid #16a34a;
+}
+
+.red {
+    border-top: 4px solid #dc2626;
+}
+
+.orange {
+    border-top: 4px solid #ea580c;
+}
+
+.purple {
+    border-top: 4px solid #7c3aed;
+}
+
+.teal {
+    border-top: 4px solid #0d9488;
+}
 
 .info-box {
     background: white;
@@ -148,8 +163,20 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+
+# =========================================================
+# CONSTANTS
+# =========================================================
+
 REQUIRED_FIELDS = ["GSTIN", "Invoice", "Party", "Taxable"]
-OPTIONAL_FIELDS = ["Date", "IGST", "CGST", "SGST", "InvoiceValue"]
+
+OPTIONAL_FIELDS = [
+    "Date",
+    "IGST",
+    "CGST",
+    "SGST",
+    "InvoiceValue"
+]
 
 STATUS_COLORS = {
     "Matched": "16A34A",
@@ -157,6 +184,7 @@ STATUS_COLORS = {
     "Missing in Books": "EA580C",
     "Value Mismatch": "7C3AED",
 }
+
 
 # =========================================================
 # HELPERS
@@ -177,15 +205,19 @@ def clean_gstin(value):
 def clean_invoice(value):
     if pd.isna(value):
         return ""
+
     value = str(value).upper().strip()
+
     if value.endswith(".0"):
         value = value[:-2]
+
     return re.sub(r"[^A-Z0-9]", "", value)
 
 
 def clean_amount(value):
     if pd.isna(value):
         return 0.0
+
     try:
         text = str(value)
         text = text.replace(",", "")
@@ -193,9 +225,12 @@ def clean_amount(value):
         text = text.replace("Rs.", "")
         text = text.replace("Rs", "")
         text = text.strip()
+
         if text in ("", "-", "nan"):
             return 0.0
+
         return float(text)
+
     except Exception:
         return 0.0
 
@@ -203,7 +238,12 @@ def clean_amount(value):
 def is_valid_gstin(gstin):
     if not gstin or len(gstin) != 15:
         return False
-    pattern = r"^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$"
+
+    pattern = (
+        r"^[0-9]{2}[A-Z]{5}[0-9]{4}"
+        r"[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$"
+    )
+
     return bool(re.match(pattern, gstin))
 
 
@@ -213,45 +253,104 @@ def is_valid_gstin(gstin):
 
 ALIASES = {
     "GSTIN": [
-        "GSTIN", "GSTIN/UIN", "GSTIN of Supplier", "GSTIN of supplier",
-        "Supplier GSTIN", "GST Number", "GST No", "GST No.",
-        "GSTIN of Vendor", "GSTIN/UIN of Supplier", "Vendor GSTIN"
+        "GSTIN",
+        "GSTIN/UIN",
+        "GSTIN of Supplier",
+        "GSTIN of supplier",
+        "Supplier GSTIN",
+        "GST Number",
+        "GST No",
+        "GST No.",
+        "GSTIN of Vendor",
+        "GSTIN/UIN of Supplier",
+        "Vendor GSTIN"
     ],
+
     "Invoice": [
-        "Invoice Number", "Invoice number", "Invoice No", "Invoice No.",
-        "Document Number", "Document No", "Bill No", "Bill Number", "Invoice"
+        "Invoice Number",
+        "Invoice number",
+        "Invoice No",
+        "Invoice No.",
+        "Document Number",
+        "Document No",
+        "Bill No",
+        "Bill Number",
+        "Invoice"
     ],
+
     "Date": [
-        "Invoice Date", "Invoice date", "Document Date", "Document date",
-        "Bill Date", "Date"
+        "Invoice Date",
+        "Invoice date",
+        "Document Date",
+        "Document date",
+        "Bill Date",
+        "Date"
     ],
+
     "Party": [
-        "Party Name", "Supplier Name", "Supplier", "Vendor Name", "Vendor",
-        "Trade Name", "Legal Name", "Party", "Supplier Trade Name"
+        "Party Name",
+        "Supplier Name",
+        "Supplier",
+        "Vendor Name",
+        "Vendor",
+        "Trade Name",
+        "Legal Name",
+        "Party",
+        "Supplier Trade Name",
+        "Trade/Legal Name"
     ],
+
     "Taxable": [
-        "Taxable Value", "Taxable value", "Taxable Amount",
-        "Taxable Amount (₹)", "Taxable Amt", "Taxable"
+        "Taxable Value",
+        "Taxable value",
+        "Taxable Amount",
+        "Taxable Amount (₹)",
+        "Taxable Amt",
+        "Taxable"
     ],
+
     "IGST": [
-        "IGST", "IGST Amount", "IGST Amt", "Integrated Tax",
-        "Integrated Tax Amount", "Integrated Tax Amount (₹)"
+        "IGST",
+        "IGST Amount",
+        "IGST Amt",
+        "Integrated Tax",
+        "Integrated Tax Amount",
+        "Integrated Tax Amount (₹)"
     ],
+
     "CGST": [
-        "CGST", "CGST Amount", "CGST Amt", "Central Tax",
-        "Central Tax Amount", "Central Tax Amount (₹)"
+        "CGST",
+        "CGST Amount",
+        "CGST Amt",
+        "Central Tax",
+        "Central Tax Amount",
+        "Central Tax Amount (₹)"
     ],
+
     "SGST": [
-        "SGST", "SGST Amount", "SGST Amt", "UTGST", "State Tax",
-        "State Tax Amount", "State/UT Tax", "State/UT Tax Amount",
+        "SGST",
+        "SGST Amount",
+        "SGST Amt",
+        "UTGST",
+        "State Tax",
+        "State Tax Amount",
+        "State/UT Tax",
+        "State/UT Tax Amount",
         "State/UT Tax Amount (₹)"
     ],
+
     "InvoiceValue": [
-        "Invoice Value", "Invoice value", "Total Invoice Value",
-        "Total Value", "Document Value", "Invoice Amount",
-        "Total Invoice Amount", "Invoice Value (₹)"
+        "Invoice Value",
+        "Invoice value",
+        "Total Invoice Value",
+        "Total Value",
+        "Document Value",
+        "Invoice Amount",
+        "Total Invoice Amount",
+        "Invoice Value (₹)"
     ]
 }
+
 
 FIELD_LABELS = {
     "GSTIN": "GSTIN",
@@ -271,23 +370,34 @@ def normalize_column(value):
 
 
 def find_column(df, aliases):
-    columns = {normalize_column(c): c for c in df.columns}
+    columns = {
+        normalize_column(c): c
+        for c in df.columns
+    }
+
     for alias in aliases:
         key = normalize_column(alias)
+
         if key in columns:
             return columns[key]
 
     for column in df.columns:
         current = normalize_column(column)
+
         for alias in aliases:
             target = normalize_column(alias)
+
             if target in current or current in target:
                 return column
+
     return None
 
 
 def auto_detect(df):
-    return {key: find_column(df, ALIASES[key]) for key in ALIASES}
+    return {
+        key: find_column(df, ALIASES[key])
+        for key in ALIASES
+    }
 
 
 # =========================================================
@@ -295,22 +405,42 @@ def auto_detect(df):
 # =========================================================
 
 def detect_header_row(raw_df, max_scan_rows=15):
+    """
+    Existing header detection logic preserved.
+    Scans first rows and finds a row containing
+    both GSTIN and Invoice style headers.
+    """
+
     scan_limit = min(max_scan_rows, len(raw_df))
+
     for row_idx in range(scan_limit):
+
         row_values = raw_df.iloc[row_idx].tolist()
-        norm_values = [normalize_column(v) for v in row_values if pd.notna(v)]
+
+        norm_values = [
+            normalize_column(v)
+            for v in row_values
+            if pd.notna(v)
+        ]
+
         if not norm_values:
             continue
 
         has_gstin = any(
-            any(normalize_column(alias) in val or val in normalize_column(alias)
-                for alias in ALIASES["GSTIN"])
+            any(
+                normalize_column(alias) in val
+                or val in normalize_column(alias)
+                for alias in ALIASES["GSTIN"]
+            )
             for val in norm_values
         )
 
         has_invoice = any(
-            any(normalize_column(alias) in val or val in normalize_column(alias)
-                for alias in ALIASES["Invoice"])
+            any(
+                normalize_column(alias) in val
+                or val in normalize_column(alias)
+                for alias in ALIASES["Invoice"]
+            )
             for val in norm_values
         )
 
@@ -321,21 +451,25 @@ def detect_header_row(raw_df, max_scan_rows=15):
 
 
 # =========================================================
-# READ EXCEL
-# =========================================================
-# IMPORTANT:
-# EXISTING READER — LEFT AS IT IS
+# EXISTING EXCEL READER
 # =========================================================
 
 def read_excel(file):
     excel = pd.ExcelFile(file)
+
     all_data = []
     valid_sheets = []
     skipped_sheets = []
 
     for sheet in excel.sheet_names:
+
         try:
-            raw = pd.read_excel(file, sheet_name=sheet, header=None)
+
+            raw = pd.read_excel(
+                file,
+                sheet_name=sheet,
+                header=None
+            )
 
             if raw.empty:
                 skipped_sheets.append(sheet)
@@ -353,19 +487,33 @@ def read_excel(file):
                 header=header_row_idx
             )
 
-            df = df.dropna(axis=1, how="all")
+            df = df.dropna(
+                axis=1,
+                how="all"
+            )
+
             df = df.loc[
                 :,
                 ~df.columns.astype(str).str.startswith("Unnamed")
             ]
 
-            gstin_column = find_column(df, ALIASES["GSTIN"])
-            invoice_column = find_column(df, ALIASES["Invoice"])
+            gstin_column = find_column(
+                df,
+                ALIASES["GSTIN"]
+            )
+
+            invoice_column = find_column(
+                df,
+                ALIASES["Invoice"]
+            )
 
             if gstin_column and invoice_column:
+
                 df["_SOURCE_SHEET"] = sheet
+
                 all_data.append(df)
                 valid_sheets.append(sheet)
+
             else:
                 skipped_sheets.append(sheet)
 
@@ -378,279 +526,244 @@ def read_excel(file):
             "GSTIN aur Invoice Number wale columns kisi bhi sheet mein nahi mile."
         )
 
-    combined = pd.concat(all_data, ignore_index=True)
+    combined = pd.concat(
+        all_data,
+        ignore_index=True
+    )
 
     return combined, valid_sheets, skipped_sheets
 
 
 # =========================================================
-# PORTAL SHEET ADD-ON
+# NEW PORTAL-SPECIFIC READER
+# EXISTING read_excel() IS NOT TOUCHED
 # =========================================================
 
-def classify_portal_sheet(sheet_name):
+def portal_sheet_type(sheet_name):
     """
-    GST portal 2B workbook ke special sheets ko classify karta hai.
-    Existing reader ko modify nahi karta.
+    Detects GST portal 2B sheet type from sheet name.
     """
 
-    s = str(sheet_name).upper().replace(" ", "").replace("-", "")
+    name = normalize_column(sheet_name)
 
-    if "CDNR" in s or "CDNRA" in s:
-        return "Credit/Debit Note"
-
-    if "CDNUR" in s or "CDNURA" in s:
-        return "Credit/Debit Note"
-
-    if "B2B" in s:
+    if "B2B" in name:
         return "B2B"
 
-    if "IMPG" in s or "IMPORT" in s:
-        return "Import"
+    if (
+        "CDN" in name
+        or "CREDITDEBIT" in name
+        or "CREDITNOTE" in name
+        or "DEBITNOTE" in name
+    ):
+        return "CDN"
 
-    if "ISD" in s:
-        return "ISD"
+    if (
+        "RCM" in name
+        or "REVERSECHARGE" in name
+    ):
+        return "RCM"
 
-    if "ITCSUMMARY" in s or "SUMMARY" in s:
+    if "ITCSUMMARY" in name:
+        return "ITC Summary"
+
+    if "SUMMARY" in name:
         return "Summary"
+
+    if "HSN" in name:
+        return "HSN"
 
     return "Other"
 
 
-def find_document_type_column(df):
-    aliases = [
-        "Document Type",
-        "Document type",
-        "Doc Type",
-        "DocType",
-        "Note Type",
-        "Note type",
-        "Credit/Debit Note",
-        "Credit Debit Note",
-        "Type",
-        "CDN Type",
-        "Debit/Credit Note",
-    ]
-
-    return find_column(df, aliases)
-
-
-def find_rcm_column(df):
-    aliases = [
-        "Supply Attracts Reverse Charge",
-        "Supply attracts reverse charge",
-        "Reverse Charge",
-        "Reverse charge",
-        "RCM",
-        "RCM Applicable",
-        "RCM Flag",
-        "Is RCM",
-        "Reverse Charge Applicable",
-    ]
-
-    return find_column(df, aliases)
-
-
-def get_portal_special_data(file):
+def read_portal_2b(file):
     """
-    Portal workbook ko separately scan karta hai.
-    Existing read_excel() ko touch nahi karta.
+    Separate portal reader.
 
-    Returns:
-        portal_info
+    IMPORTANT:
+    Existing read_excel() remains untouched.
+
+    Portal logic:
+    - B2B sheet is the primary 2B reconciliation source.
+    - CDN / credit-debit note sheets are stored separately.
+    - RCM sheets are stored separately.
+    - ITC Summary and other portal sheets are not mixed into B2B.
     """
 
-    info = {
-        "b2b_sheets": [],
-        "note_sheets": [],
-        "rcm_sheets": [],
-        "summary_sheets": [],
-        "other_sheets": [],
-        "credit_notes": pd.DataFrame(),
-        "debit_notes": pd.DataFrame(),
-        "rcm": pd.DataFrame(),
-    }
+    excel = pd.ExcelFile(file)
 
-    try:
-        excel = pd.ExcelFile(file)
+    b2b_frames = []
+    cdn_frames = []
+    rcm_frames = []
 
-        for sheet in excel.sheet_names:
+    valid_b2b_sheets = []
+    cdn_sheets = []
+    rcm_sheets = []
+    skipped_sheets = []
 
-            category = classify_portal_sheet(sheet)
+    for sheet in excel.sheet_names:
 
-            if category == "B2B":
-                info["b2b_sheets"].append(sheet)
+        try:
 
-            elif category == "Credit/Debit Note":
-                info["note_sheets"].append(sheet)
+            sheet_type = portal_sheet_type(sheet)
 
-            elif category == "Summary":
-                info["summary_sheets"].append(sheet)
+            raw = pd.read_excel(
+                file,
+                sheet_name=sheet,
+                header=None
+            )
+
+            if raw.empty:
+                skipped_sheets.append(sheet)
+                continue
+
+            header_row_idx = detect_header_row(raw)
+
+            if header_row_idx is None:
+
+                # Some portal sheets may have slightly different
+                # structures. Try a normal header read as fallback.
+                try:
+                    temp = pd.read_excel(
+                        file,
+                        sheet_name=sheet
+                    )
+                except Exception:
+                    temp = pd.DataFrame()
+
+                if temp.empty:
+                    skipped_sheets.append(sheet)
+                    continue
+
+                df = temp
 
             else:
-                info["other_sheets"].append(sheet)
-
-            # ---------------------------------------------
-            # CDNR / CDNUR
-            # ---------------------------------------------
-
-            if category == "Credit/Debit Note":
-
-                try:
-                    raw = pd.read_excel(
-                        file,
-                        sheet_name=sheet,
-                        header=None
-                    )
-
-                    header_idx = detect_header_row(raw)
-
-                    if header_idx is None:
-                        continue
-
-                    df = pd.read_excel(
-                        file,
-                        sheet_name=sheet,
-                        header=header_idx
-                    )
-
-                    df = df.dropna(axis=1, how="all")
-                    df = df.loc[
-                        :,
-                        ~df.columns.astype(str).str.startswith("Unnamed")
-                    ]
-
-                    doc_type_col = find_document_type_column(df)
-
-                    if doc_type_col:
-
-                        types = (
-                            df[doc_type_col]
-                            .astype(str)
-                            .str.upper()
-                            .str.strip()
-                        )
-
-                        credit_mask = types.str.contains(
-                            "CREDIT|CR", regex=True, na=False
-                        )
-
-                        debit_mask = types.str.contains(
-                            "DEBIT|DR", regex=True, na=False
-                        )
-
-                        credit = df[credit_mask].copy()
-                        debit = df[debit_mask].copy()
-
-                    else:
-                        # Agar portal export mein type column absent ho,
-                        # source sheet ke possible naming ko use karenge.
-                        sheet_upper = sheet.upper()
-
-                        if "CREDIT" in sheet_upper:
-                            credit = df.copy()
-                            debit = pd.DataFrame(columns=df.columns)
-
-                        elif "DEBIT" in sheet_upper:
-                            debit = df.copy()
-                            credit = pd.DataFrame(columns=df.columns)
-
-                        else:
-                            # Mixed CDNR/CDNUR file mein type absent ho
-                            # to records ko unclassified rakhenge.
-                            credit = pd.DataFrame(columns=df.columns)
-                            debit = pd.DataFrame(columns=df.columns)
-
-                    if not credit.empty:
-                        credit["_PORTAL_SOURCE_SHEET"] = sheet
-
-                    if not debit.empty:
-                        debit["_PORTAL_SOURCE_SHEET"] = sheet
-
-                    if info["credit_notes"].empty:
-                        info["credit_notes"] = credit
-                    else:
-                        info["credit_notes"] = pd.concat(
-                            [info["credit_notes"], credit],
-                            ignore_index=True
-                        )
-
-                    if info["debit_notes"].empty:
-                        info["debit_notes"] = debit
-                    else:
-                        info["debit_notes"] = pd.concat(
-                            [info["debit_notes"], debit],
-                            ignore_index=True
-                        )
-
-                except Exception:
-                    continue
-
-        # =================================================
-        # RCM — B2B SHEETS
-        # =================================================
-
-        for sheet in info["b2b_sheets"]:
-
-            try:
-                raw = pd.read_excel(
-                    file,
-                    sheet_name=sheet,
-                    header=None
-                )
-
-                header_idx = detect_header_row(raw)
-
-                if header_idx is None:
-                    continue
 
                 df = pd.read_excel(
                     file,
                     sheet_name=sheet,
-                    header=header_idx
+                    header=header_row_idx
                 )
 
-                df = df.dropna(axis=1, how="all")
-                df = df.loc[
-                    :,
-                    ~df.columns.astype(str).str.startswith("Unnamed")
-                ]
+            df = df.dropna(
+                axis=1,
+                how="all"
+            )
 
-                rcm_col = find_rcm_column(df)
+            df = df.loc[
+                :,
+                ~df.columns.astype(str).str.startswith("Unnamed")
+            ]
 
-                if rcm_col:
+            df["_SOURCE_SHEET"] = sheet
 
-                    rcm_values = (
-                        df[rcm_col]
-                        .astype(str)
-                        .str.upper()
-                        .str.strip()
-                    )
+            gstin_column = find_column(
+                df,
+                ALIASES["GSTIN"]
+            )
 
-                    rcm_mask = rcm_values.isin(
-                        ["YES", "Y", "TRUE", "1"]
-                    )
+            invoice_column = find_column(
+                df,
+                ALIASES["Invoice"]
+            )
 
-                    rcm_df = df[rcm_mask].copy()
+            # -------------------------------------------------
+            # B2B
+            # -------------------------------------------------
 
-                    if not rcm_df.empty:
-                        rcm_df["_PORTAL_SOURCE_SHEET"] = sheet
-                        rcm_df["_RCM"] = "Yes"
+            if sheet_type == "B2B":
 
-                        if info["rcm"].empty:
-                            info["rcm"] = rcm_df
-                        else:
-                            info["rcm"] = pd.concat(
-                                [info["rcm"], rcm_df],
-                                ignore_index=True
-                            )
+                if gstin_column and invoice_column:
+                    b2b_frames.append(df)
+                    valid_b2b_sheets.append(sheet)
+                else:
+                    skipped_sheets.append(sheet)
 
-            except Exception:
-                continue
+            # -------------------------------------------------
+            # CDN
+            # -------------------------------------------------
 
-    except Exception:
-        pass
+            elif sheet_type == "CDN":
 
-    return info
+                cdn_frames.append(df)
+                cdn_sheets.append(sheet)
+
+            # -------------------------------------------------
+            # RCM
+            # -------------------------------------------------
+
+            elif sheet_type == "RCM":
+
+                rcm_frames.append(df)
+                rcm_sheets.append(sheet)
+
+            else:
+
+                skipped_sheets.append(sheet)
+
+        except Exception:
+            skipped_sheets.append(sheet)
+
+    # ---------------------------------------------------------
+    # If no explicit B2B sheet found, fallback to existing reader
+    # ---------------------------------------------------------
+
+    if not b2b_frames:
+
+        fallback_raw, fallback_sheets, fallback_skipped = read_excel(file)
+
+        b2b_raw = fallback_raw
+
+        valid_b2b_sheets = fallback_sheets
+
+        skipped_sheets.extend(fallback_skipped)
+
+    else:
+
+        b2b_raw = pd.concat(
+            b2b_frames,
+            ignore_index=True
+        )
+
+    # ---------------------------------------------------------
+    # CDN
+    # ---------------------------------------------------------
+
+    if cdn_frames:
+
+        cdn_raw = pd.concat(
+            cdn_frames,
+            ignore_index=True
+        )
+
+    else:
+
+        cdn_raw = pd.DataFrame()
+
+    # ---------------------------------------------------------
+    # RCM
+    # ---------------------------------------------------------
+
+    if rcm_frames:
+
+        rcm_raw = pd.concat(
+            rcm_frames,
+            ignore_index=True
+        )
+
+    else:
+
+        rcm_raw = pd.DataFrame()
+
+    return {
+        "b2b_raw": b2b_raw,
+        "cdn_raw": cdn_raw,
+        "rcm_raw": rcm_raw,
+        "b2b_sheets": valid_b2b_sheets,
+        "cdn_sheets": cdn_sheets,
+        "rcm_sheets": rcm_sheets,
+        "skipped_sheets": skipped_sheets,
+        "all_sheets": excel.sheet_names
+    }
 
 
 # =========================================================
@@ -668,10 +781,20 @@ def standardize(df, overrides=None):
 
         manual = overrides.get(key)
 
-        if manual and manual != "— None —" and manual in df.columns:
+        if (
+            manual
+            and manual != "— None —"
+            and manual in df.columns
+        ):
             detected[key] = manual
+
         else:
-            detected[key] = find_column(df, ALIASES[key])
+            detected[key] = find_column(
+                df,
+                ALIASES[key]
+            )
+
+    # GSTIN
 
     if detected["GSTIN"]:
         result["GSTIN"] = df[
@@ -680,12 +803,16 @@ def standardize(df, overrides=None):
     else:
         result["GSTIN"] = ""
 
+    # Invoice
+
     if detected["Invoice"]:
         result["Invoice Number"] = df[
             detected["Invoice"]
         ].apply(clean_invoice)
     else:
         result["Invoice Number"] = ""
+
+    # Date
 
     if detected["Date"]:
         result["Invoice Date"] = pd.to_datetime(
@@ -695,12 +822,16 @@ def standardize(df, overrides=None):
     else:
         result["Invoice Date"] = pd.NaT
 
+    # Party
+
     if detected["Party"]:
         result["Party Name"] = df[
             detected["Party"]
         ].apply(clean_text)
     else:
         result["Party Name"] = ""
+
+    # Taxable
 
     if detected["Taxable"]:
         result["Taxable Value"] = df[
@@ -709,12 +840,16 @@ def standardize(df, overrides=None):
     else:
         result["Taxable Value"] = 0.0
 
+    # IGST
+
     if detected["IGST"]:
         result["IGST"] = df[
             detected["IGST"]
         ].apply(clean_amount)
     else:
         result["IGST"] = 0.0
+
+    # CGST
 
     if detected["CGST"]:
         result["CGST"] = df[
@@ -723,6 +858,8 @@ def standardize(df, overrides=None):
     else:
         result["CGST"] = 0.0
 
+    # SGST
+
     if detected["SGST"]:
         result["SGST"] = df[
             detected["SGST"]
@@ -730,11 +867,16 @@ def standardize(df, overrides=None):
     else:
         result["SGST"] = 0.0
 
+    # Invoice Value
+
     if detected["InvoiceValue"]:
+
         result["Invoice Value"] = df[
             detected["InvoiceValue"]
         ].apply(clean_amount)
+
     else:
+
         result["Invoice Value"] = (
             result["Taxable Value"]
             + result["IGST"]
@@ -756,20 +898,31 @@ def standardize(df, overrides=None):
         (result["Invoice Number"] == "")
     )
 
-    dropped_rows = int(blank_mask.sum())
+    dropped_rows = int(
+        blank_mask.sum()
+    )
 
-    cleaned = result[~blank_mask].copy()
+    cleaned = result[
+        ~blank_mask
+    ].copy()
 
     dup_mask = cleaned.duplicated(
-        subset=["GSTIN", "Invoice Number"],
+        subset=[
+            "GSTIN",
+            "Invoice Number"
+        ],
         keep=False
     )
 
-    duplicate_count = int(dup_mask.sum())
+    duplicate_count = int(
+        dup_mask.sum()
+    )
 
     invalid_gstin_count = int(
         cleaned["GSTIN"]
-        .apply(lambda g: not is_valid_gstin(g))
+        .apply(
+            lambda g: not is_valid_gstin(g)
+        )
         .sum()
     )
 
@@ -781,7 +934,175 @@ def standardize(df, overrides=None):
         "detected_columns": detected,
     }
 
-    return cleaned.reset_index(drop=True), quality
+    return (
+        cleaned.reset_index(drop=True),
+        quality
+    )
+
+
+# =========================================================
+# NEW PORTAL NOTE / RCM ANALYSIS
+# =========================================================
+
+def find_note_type_column(df):
+    possible = [
+        "Note Type",
+        "Document Type",
+        "Debit/Credit Note",
+        "Debit Credit Note",
+        "Type",
+        "Note Type (D/C)"
+    ]
+
+    return find_column(
+        df,
+        possible
+    )
+
+
+def classify_notes(cdn_raw):
+    """
+    Converts portal CDN data into separate Debit Note
+    and Credit Note dataframes.
+    """
+
+    if cdn_raw is None or cdn_raw.empty:
+        return pd.DataFrame(), pd.DataFrame()
+
+    note_col = find_note_type_column(cdn_raw)
+
+    if not note_col:
+        return (
+            cdn_raw.copy(),
+            pd.DataFrame()
+        )
+
+    values = (
+        cdn_raw[note_col]
+        .fillna("")
+        .astype(str)
+        .str.upper()
+    )
+
+    debit_mask = (
+        values.str.contains("DEBIT", na=False)
+        |
+        values.str.contains(r"\bDN\b", regex=True, na=False)
+    )
+
+    credit_mask = (
+        values.str.contains("CREDIT", na=False)
+        |
+        values.str.contains(r"\bCN\b", regex=True, na=False)
+    )
+
+    debit_df = cdn_raw[
+        debit_mask
+    ].copy()
+
+    credit_df = cdn_raw[
+        credit_mask
+    ].copy()
+
+    return debit_df, credit_df
+
+
+def find_rcm_column(df):
+    possible = [
+        "Reverse Charge",
+        "Reverse charge",
+        "RCM",
+        "Reverse Charge Flag",
+        "Supply Attract Reverse Charge",
+        "Is Reverse Charge"
+    ]
+
+    return find_column(
+        df,
+        possible
+    )
+
+
+def analyse_rcm(two_b_raw, rcm_raw=None):
+    """
+    RCM can appear inside B2B itself as Reverse Charge = Yes.
+    Separate RCM sheet is also considered if present.
+    """
+
+    rcm_b2b = pd.DataFrame()
+    rcm_sheet = pd.DataFrame()
+
+    if two_b_raw is not None and not two_b_raw.empty:
+
+        rcm_col = find_rcm_column(two_b_raw)
+
+        if rcm_col:
+
+            values = (
+                two_b_raw[rcm_col]
+                .fillna("")
+                .astype(str)
+                .str.upper()
+                .str.strip()
+            )
+
+            rcm_mask = values.isin(
+                [
+                    "YES",
+                    "Y",
+                    "TRUE",
+                    "1"
+                ]
+            )
+
+            rcm_b2b = two_b_raw[
+                rcm_mask
+            ].copy()
+
+    if rcm_raw is not None and not rcm_raw.empty:
+        rcm_sheet = rcm_raw.copy()
+
+    if not rcm_b2b.empty and not rcm_sheet.empty:
+
+        combined = pd.concat(
+            [rcm_b2b, rcm_sheet],
+            ignore_index=True
+        )
+
+    elif not rcm_b2b.empty:
+
+        combined = rcm_b2b
+
+    else:
+
+        combined = rcm_sheet
+
+    return combined
+
+
+def portal_document_stats(
+    two_b_raw,
+    cdn_raw,
+    rcm_raw
+):
+
+    debit_df, credit_df = classify_notes(
+        cdn_raw
+    )
+
+    rcm_df = analyse_rcm(
+        two_b_raw,
+        rcm_raw
+    )
+
+    return {
+        "debit_notes": debit_df,
+        "credit_notes": credit_df,
+        "rcm": rcm_df,
+        "debit_count": len(debit_df),
+        "credit_count": len(credit_df),
+        "rcm_count": len(rcm_df),
+    }
 
 
 # =========================================================
@@ -798,7 +1119,10 @@ def build_dedup_key(df):
         + df["Invoice Number"]
     )
 
-    occurrence = base_key.groupby(base_key).cumcount()
+    occurrence = (
+        base_key.groupby(base_key)
+        .cumcount()
+    )
 
     df["KEY"] = (
         base_key
@@ -817,13 +1141,16 @@ def suggest_close_matches(
 ):
 
     same_gstin = other_df[
-        other_df["GSTIN"] == missing_row["GSTIN"]
+        other_df["GSTIN"]
+        == missing_row["GSTIN"]
     ]
 
     if same_gstin.empty:
         return None
 
-    candidates = same_gstin[field].tolist()
+    candidates = same_gstin[
+        field
+    ].tolist()
 
     best = difflib.get_close_matches(
         missing_row[field],
@@ -835,12 +1162,16 @@ def suggest_close_matches(
     if best:
 
         match_row = same_gstin[
-            same_gstin[field] == best[0]
+            same_gstin[field]
+            == best[0]
         ].iloc[0]
 
-        return best[0], match_row.get(
-            "Invoice Value",
-            None
+        return (
+            best[0],
+            match_row.get(
+                "Invoice Value",
+                None
+            )
         )
 
     return None
@@ -853,15 +1184,23 @@ def reconcile(
     enable_fuzzy=True
 ):
 
-    two_b_k = build_dedup_key(two_b)
-    books_k = build_dedup_key(books)
+    two_b_k = build_dedup_key(
+        two_b
+    )
+
+    books_k = build_dedup_key(
+        books
+    )
 
     result = pd.merge(
         books_k,
         two_b_k,
         on="KEY",
         how="outer",
-        suffixes=("_Books", "_2B"),
+        suffixes=(
+            "_Books",
+            "_2B"
+        ),
         indicator=True
     )
 
@@ -873,7 +1212,9 @@ def reconcile(
 
         if row["_merge"] == "left_only":
 
-            statuses.append("Missing in 2B")
+            statuses.append(
+                "Missing in 2B"
+            )
 
             differences.append(
                 row["IGST_Books"]
@@ -886,9 +1227,12 @@ def reconcile(
             if enable_fuzzy:
 
                 probe = {
-                    "GSTIN": row["GSTIN_Books"],
-                    "Invoice Number":
-                        row["Invoice Number_Books"]
+                    "GSTIN": row[
+                        "GSTIN_Books"
+                    ],
+                    "Invoice Number": row[
+                        "Invoice Number_Books"
+                    ]
                 }
 
                 found = suggest_close_matches(
@@ -897,17 +1241,22 @@ def reconcile(
                 )
 
                 if found:
+
                     suggestion = (
                         f"Possible match in 2B: "
                         f"'{found[0]}' — "
                         f"check formatting/typo"
                     )
 
-            suggestions.append(suggestion)
+            suggestions.append(
+                suggestion
+            )
 
         elif row["_merge"] == "right_only":
 
-            statuses.append("Missing in Books")
+            statuses.append(
+                "Missing in Books"
+            )
 
             differences.append(
                 row["IGST_2B"]
@@ -920,9 +1269,12 @@ def reconcile(
             if enable_fuzzy:
 
                 probe = {
-                    "GSTIN": row["GSTIN_2B"],
-                    "Invoice Number":
-                        row["Invoice Number_2B"]
+                    "GSTIN": row[
+                        "GSTIN_2B"
+                    ],
+                    "Invoice Number": row[
+                        "Invoice Number_2B"
+                    ]
                 }
 
                 found = suggest_close_matches(
@@ -931,13 +1283,16 @@ def reconcile(
                 )
 
                 if found:
+
                     suggestion = (
                         f"Possible match in Books: "
                         f"'{found[0]}' — "
                         f"check formatting/typo"
                     )
 
-            suggestions.append(suggestion)
+            suggestions.append(
+                suggestion
+            )
 
         else:
 
@@ -984,15 +1339,27 @@ def reconcile(
                 and sgst_diff <= tolerance
                 and invoice_diff <= tolerance
             ):
-                statuses.append("Matched")
-            else:
-                statuses.append("Value Mismatch")
 
-            differences.append(total_diff)
+                statuses.append(
+                    "Matched"
+                )
+
+            else:
+
+                statuses.append(
+                    "Value Mismatch"
+                )
+
+            differences.append(
+                total_diff
+            )
+
             suggestions.append("")
 
     result["Status"] = statuses
+
     result["ITC Difference"] = differences
+
     result["Match Suggestion"] = suggestions
 
     return result
@@ -1016,50 +1383,61 @@ def prepare_display(df):
             index=df.index
         )
 
-    gstin_books = get_column(
-        "GSTIN_Books"
-    ).fillna("")
+    gstin_books = (
+        get_column("GSTIN_Books")
+        .fillna("")
+    )
 
-    gstin_2b = get_column(
-        "GSTIN_2B"
-    ).fillna("")
+    gstin_2b = (
+        get_column("GSTIN_2B")
+        .fillna("")
+    )
 
     output["GSTIN"] = gstin_books.where(
         gstin_books != "",
         gstin_2b
     )
 
-    party_books = get_column(
-        "Party Name_Books"
-    ).fillna("")
+    party_books = (
+        get_column("Party Name_Books")
+        .fillna("")
+    )
 
-    party_2b = get_column(
-        "Party Name_2B"
-    ).fillna("")
+    party_2b = (
+        get_column("Party Name_2B")
+        .fillna("")
+    )
 
     output["Party Name"] = party_books.where(
         party_books != "",
         party_2b
     )
 
-    inv_books = get_column(
-        "Invoice Number_Books"
-    ).fillna("")
+    inv_books = (
+        get_column("Invoice Number_Books")
+        .fillna("")
+    )
 
-    inv_2b = get_column(
-        "Invoice Number_2B"
-    ).fillna("")
+    inv_2b = (
+        get_column("Invoice Number_2B")
+        .fillna("")
+    )
 
     output["Invoice Number"] = inv_books.where(
         inv_books != "",
         inv_2b
     )
 
-    output["Invoice Date"] = get_column(
-        "Invoice Date_Books"
-    ).where(
-        get_column("Invoice Date_Books").notna(),
-        get_column("Invoice Date_2B")
+    output["Invoice Date"] = (
+        get_column("Invoice Date_Books")
+        .where(
+            get_column(
+                "Invoice Date_Books"
+            ).notna(),
+            get_column(
+                "Invoice Date_2B"
+            )
+        )
     )
 
     output["Taxable - Books"] = get_column(
@@ -1114,7 +1492,9 @@ def prepare_display(df):
         "Match Suggestion"
     )
 
-    return output.reset_index(drop=True)
+    return output.reset_index(
+        drop=True
+    )
 
 
 def apply_match_overrides(display_df):
@@ -1136,7 +1516,10 @@ def apply_match_overrides(display_df):
     display_df = display_df.copy()
 
     display_df["Match Suggestion"] = [
-        overrides.get(k, v)
+        overrides.get(
+            k,
+            v
+        )
         for k, v in zip(
             keys,
             display_df["Match Suggestion"]
@@ -1149,29 +1532,41 @@ def apply_match_overrides(display_df):
 def vendor_summary(display_df):
 
     grouped = display_df.groupby(
-        ["GSTIN", "Party Name"],
+        [
+            "GSTIN",
+            "Party Name"
+        ],
         dropna=False
     ).agg(
         Total_Invoices=(
             "Invoice Number",
             "count"
         ),
+
         Matched=(
             "Status",
-            lambda s: (s == "Matched").sum()
+            lambda s:
+            (s == "Matched").sum()
         ),
+
         Missing_in_2B=(
             "Status",
-            lambda s: (s == "Missing in 2B").sum()
+            lambda s:
+            (s == "Missing in 2B").sum()
         ),
+
         Missing_in_Books=(
             "Status",
-            lambda s: (s == "Missing in Books").sum()
+            lambda s:
+            (s == "Missing in Books").sum()
         ),
+
         Value_Mismatch=(
             "Status",
-            lambda s: (s == "Value Mismatch").sum()
+            lambda s:
+            (s == "Value Mismatch").sum()
         ),
+
         ITC_at_Risk=(
             "ITC Difference",
             "sum"
@@ -1184,144 +1579,21 @@ def vendor_summary(display_df):
     )
 
     grouped["ITC_at_Risk"] = (
-        grouped["ITC_at_Risk"].round(2)
+        grouped["ITC_at_Risk"]
+        .round(2)
     )
 
     return grouped
 
 
 # =========================================================
-# PORTAL NOTE STANDARDIZATION
-# =========================================================
-
-def standardize_portal_notes(raw_df):
-
-    if raw_df is None or raw_df.empty:
-        return pd.DataFrame()
-
-    temp = raw_df.copy()
-
-    mapping = {}
-
-    for key in ALIASES:
-        mapping[key] = find_column(
-            temp,
-            ALIASES[key]
-        )
-
-    # Portal note files can use Note Number instead of Invoice Number
-    if not mapping["Invoice"]:
-
-        note_aliases = [
-            "Note Number",
-            "Note No",
-            "Note No.",
-            "Credit Note Number",
-            "Debit Note Number",
-            "Document Number",
-            "Document No"
-        ]
-
-        mapping["Invoice"] = find_column(
-            temp,
-            note_aliases
-        )
-
-    result = pd.DataFrame()
-
-    if mapping["GSTIN"]:
-        result["GSTIN"] = temp[
-            mapping["GSTIN"]
-        ].apply(clean_gstin)
-    else:
-        result["GSTIN"] = ""
-
-    if mapping["Invoice"]:
-        result["Invoice Number"] = temp[
-            mapping["Invoice"]
-        ].apply(clean_invoice)
-    else:
-        result["Invoice Number"] = ""
-
-    if mapping["Date"]:
-        result["Invoice Date"] = pd.to_datetime(
-            temp[mapping["Date"]],
-            errors="coerce"
-        )
-    else:
-        result["Invoice Date"] = pd.NaT
-
-    if mapping["Party"]:
-        result["Party Name"] = temp[
-            mapping["Party"]
-        ].apply(clean_text)
-    else:
-        result["Party Name"] = ""
-
-    for tax_field in [
-        "Taxable",
-        "IGST",
-        "CGST",
-        "SGST",
-        "InvoiceValue"
-    ]:
-
-        if mapping[tax_field]:
-
-            output_name = {
-                "Taxable": "Taxable Value",
-                "InvoiceValue": "Invoice Value"
-            }.get(
-                tax_field,
-                tax_field
-            )
-
-            result[output_name] = temp[
-                mapping[tax_field]
-            ].apply(clean_amount)
-
-        else:
-
-            output_name = {
-                "Taxable": "Taxable Value",
-                "InvoiceValue": "Invoice Value"
-            }.get(
-                tax_field,
-                tax_field
-            )
-
-            result[output_name] = 0.0
-
-    if (
-        "Invoice Value" in result.columns
-        and result["Invoice Value"].eq(0).all()
-    ):
-        result["Invoice Value"] = (
-            result["Taxable Value"]
-            + result["IGST"]
-            + result["CGST"]
-            + result["SGST"]
-        )
-
-    if "_PORTAL_SOURCE_SHEET" in temp.columns:
-        result["Source Sheet"] = temp[
-            "_PORTAL_SOURCE_SHEET"
-        ]
-    else:
-        result["Source Sheet"] = ""
-
-    return result[
-        (result["GSTIN"] != "")
-        &
-        (result["Invoice Number"] != "")
-    ].reset_index(drop=True)
-
-
-# =========================================================
 # EXCEL REPORT
 # =========================================================
 
-def _style_worksheet_header(ws, ncols):
+def _style_worksheet_header(
+    ws,
+    ncols
+):
 
     header_fill = PatternFill(
         start_color="0F2A5F",
@@ -1348,7 +1620,10 @@ def _style_worksheet_header(ws, ncols):
         bottom=thin
     )
 
-    for col in range(1, ncols + 1):
+    for col in range(
+        1,
+        ncols + 1
+    ):
 
         c = ws.cell(
             row=1,
@@ -1356,6 +1631,7 @@ def _style_worksheet_header(ws, ncols):
         )
 
         c.fill = header_fill
+
         c.font = header_font
 
         c.alignment = Alignment(
@@ -1369,7 +1645,10 @@ def _style_worksheet_header(ws, ncols):
     ws.freeze_panes = "A2"
 
 
-def _autofit(ws, max_width=45):
+def _autofit(
+    ws,
+    max_width=45
+):
 
     for col_cells in ws.columns:
 
@@ -1434,6 +1713,7 @@ def _format_data_rows(
                 "ITC"
             ]
         ):
+
             money_cols.add(idx)
 
     for row in ws.iter_rows(
@@ -1452,7 +1732,10 @@ def _format_data_rows(
             cell.border = border
 
             if cell.column in money_cols:
-                cell.number_format = "#,##0.00"
+
+                cell.number_format = (
+                    "#,##0.00"
+                )
 
         if status_col_index:
 
@@ -1484,16 +1767,13 @@ def _format_data_rows(
                 ]
 
                 cell.fill = fill
+
                 cell.font = font
 
                 cell.alignment = Alignment(
                     horizontal="center"
                 )
 
-
-# =========================================================
-# CREATE EXCEL
-# =========================================================
 
 def create_excel(
     result,
@@ -1502,27 +1782,46 @@ def create_excel(
     tolerance
 ):
 
-    display = prepare_display(result)
-    display = apply_match_overrides(display)
+    display = prepare_display(
+        result
+    )
 
-    v_summary = vendor_summary(display)
+    display = apply_match_overrides(
+        display
+    )
+
+    v_summary = vendor_summary(
+        display
+    )
 
     total = len(display)
 
     matched = int(
-        (display["Status"] == "Matched").sum()
+        (
+            display["Status"]
+            == "Matched"
+        ).sum()
     )
 
     missing_2b = int(
-        (display["Status"] == "Missing in 2B").sum()
+        (
+            display["Status"]
+            == "Missing in 2B"
+        ).sum()
     )
 
     missing_books = int(
-        (display["Status"] == "Missing in Books").sum()
+        (
+            display["Status"]
+            == "Missing in Books"
+        ).sum()
     )
 
     mismatch = int(
-        (display["Status"] == "Value Mismatch").sum()
+        (
+            display["Status"]
+            == "Value Mismatch"
+        ).sum()
     )
 
     itc_at_risk = display.loc[
@@ -1557,13 +1856,21 @@ def create_excel(
                 missing_books,
                 mismatch,
                 round(
-                    matched / total * 100,
+                    (
+                        matched
+                        / total
+                        * 100
+                    ),
                     2
-                ) if total else 0,
+                )
+                if total
+                else 0,
+
                 round(
                     itc_at_risk,
                     2
                 ),
+
                 tolerance,
             ]
         })
@@ -1603,7 +1910,8 @@ def create_excel(
         ]:
 
             temp = display_export[
-                display_export["Status"] == status
+                display_export["Status"]
+                == status
             ]
 
             temp.to_excel(
@@ -1618,66 +1926,15 @@ def create_excel(
             index=False
         )
 
-        # -------------------------------------------------
-        # ADD PORTAL NOTES / RCM TO EXPORT
-        # -------------------------------------------------
-
-        if (
-            "portal_credit_notes"
-            in st.session_state
-        ):
-
-            credit_export = st.session_state[
-                "portal_credit_notes"
-            ]
-
-            if not credit_export.empty:
-
-                credit_export.to_excel(
-                    writer,
-                    sheet_name="Credit Notes",
-                    index=False
-                )
-
-        if (
-            "portal_debit_notes"
-            in st.session_state
-        ):
-
-            debit_export = st.session_state[
-                "portal_debit_notes"
-            ]
-
-            if not debit_export.empty:
-
-                debit_export.to_excel(
-                    writer,
-                    sheet_name="Debit Notes",
-                    index=False
-                )
-
-        if (
-            "portal_rcm"
-            in st.session_state
-        ):
-
-            rcm_export = st.session_state[
-                "portal_rcm"
-            ]
-
-            if not rcm_export.empty:
-
-                rcm_export.to_excel(
-                    writer,
-                    sheet_name="RCM",
-                    index=False
-                )
-
     output.seek(0)
 
-    wb = load_workbook(output)
+    wb = load_workbook(
+        output
+    )
 
-    ws_summary = wb["Summary"]
+    ws_summary = wb[
+        "Summary"
+    ]
 
     _style_worksheet_header(
         ws_summary,
@@ -1689,7 +1946,9 @@ def create_excel(
         ws_summary.max_column
     )
 
-    _autofit(ws_summary)
+    _autofit(
+        ws_summary
+    )
 
     main_sheet_names = [
         "Complete Reconciliation",
@@ -1719,7 +1978,9 @@ def create_excel(
         ):
 
             if cell.value == "Status":
+
                 status_idx = i
+
                 break
 
         _format_data_rows(
@@ -1730,7 +1991,9 @@ def create_excel(
 
         _autofit(ws)
 
-    ws_vendor = wb["Vendor Summary"]
+    ws_vendor = wb[
+        "Vendor Summary"
+    ]
 
     _style_worksheet_header(
         ws_vendor,
@@ -1742,37 +2005,15 @@ def create_excel(
         ws_vendor.max_column
     )
 
-    _autofit(ws_vendor)
-
-    # -----------------------------------------------------
-    # Format portal sheets
-    # -----------------------------------------------------
-
-    for special_name in [
-        "Credit Notes",
-        "Debit Notes",
-        "RCM"
-    ]:
-
-        if special_name in wb.sheetnames:
-
-            ws = wb[special_name]
-
-            _style_worksheet_header(
-                ws,
-                ws.max_column
-            )
-
-            _format_data_rows(
-                ws,
-                ws.max_column
-            )
-
-            _autofit(ws)
+    _autofit(
+        ws_vendor
+    )
 
     final_output = BytesIO()
 
-    wb.save(final_output)
+    wb.save(
+        final_output
+    )
 
     final_output.seek(0)
 
@@ -1806,13 +2047,19 @@ with st.sidebar:
         min_value=0.0,
         value=2.0,
         step=0.50,
-        help="Differences within this amount are still treated as a Match."
+        help=(
+            "Differences within this amount "
+            "are still treated as a Match."
+        )
     )
 
     enable_fuzzy = st.checkbox(
         "🔍 Suggest possible matches for gaps",
         value=True,
-        help="Flags likely formatting/typo differences instead of a genuine missing invoice."
+        help=(
+            "Flags likely formatting/typo differences "
+            "instead of a genuine missing invoice."
+        )
     )
 
     st.divider()
@@ -1860,6 +2107,7 @@ st.markdown(
 
 col1, col2 = st.columns(2)
 
+
 with col1:
 
     st.subheader(
@@ -1875,6 +2123,7 @@ with col1:
         type=["xlsx", "xls"],
         key="gst_2b_upload"
     )
+
 
 with col2:
 
@@ -1894,39 +2143,86 @@ with col2:
 
 
 # =========================================================
-# LOAD
+# OVERRIDES
 # =========================================================
 
 overrides_2b = {}
 overrides_books = {}
 
+
+# =========================================================
+# LOAD FILES
+# =========================================================
+
 if two_b_file and books_file:
 
     try:
 
+        # -----------------------------------------------------
+        # PORTAL 2B
+        # -----------------------------------------------------
+
         if (
-            "two_b_raw" not in st.session_state
+            "portal_b2b_raw"
+            not in st.session_state
             or
             st.session_state.get(
                 "two_b_name"
-            ) != two_b_file.name
+            )
+            != two_b_file.name
         ):
 
-            raw, sheets, skipped = read_excel(
+            portal_data = read_portal_2b(
                 two_b_file
             )
 
             st.session_state[
-                "two_b_raw"
-            ] = raw
+                "portal_b2b_raw"
+            ] = portal_data[
+                "b2b_raw"
+            ]
+
+            st.session_state[
+                "portal_cdn_raw"
+            ] = portal_data[
+                "cdn_raw"
+            ]
+
+            st.session_state[
+                "portal_rcm_raw"
+            ] = portal_data[
+                "rcm_raw"
+            ]
 
             st.session_state[
                 "two_b_sheets"
-            ] = sheets
+            ] = portal_data[
+                "b2b_sheets"
+            ]
+
+            st.session_state[
+                "portal_cdn_sheets"
+            ] = portal_data[
+                "cdn_sheets"
+            ]
+
+            st.session_state[
+                "portal_rcm_sheets"
+            ] = portal_data[
+                "rcm_sheets"
+            ]
 
             st.session_state[
                 "two_b_skipped"
-            ] = skipped
+            ] = portal_data[
+                "skipped_sheets"
+            ]
+
+            st.session_state[
+                "portal_all_sheets"
+            ] = portal_data[
+                "all_sheets"
+            ]
 
             st.session_state[
                 "two_b_name"
@@ -1936,42 +2232,18 @@ if two_b_file and books_file:
                 "match_suggestion_overrides"
             ] = {}
 
-            # ---------------------------------------------
-            # PORTAL ADD-ON
-            # ---------------------------------------------
-
-            portal_info = get_portal_special_data(
-                two_b_file
-            )
-
-            st.session_state[
-                "portal_info"
-            ] = portal_info
-
-            st.session_state[
-                "portal_credit_notes"
-            ] = standardize_portal_notes(
-                portal_info["credit_notes"]
-            )
-
-            st.session_state[
-                "portal_debit_notes"
-            ] = standardize_portal_notes(
-                portal_info["debit_notes"]
-            )
-
-            st.session_state[
-                "portal_rcm"
-            ] = standardize_portal_notes(
-                portal_info["rcm"]
-            )
+        # -----------------------------------------------------
+        # BOOKS
+        # -----------------------------------------------------
 
         if (
-            "books_raw" not in st.session_state
+            "books_raw"
+            not in st.session_state
             or
             st.session_state.get(
                 "books_name"
-            ) != books_file.name
+            )
+            != books_file.name
         ):
 
             raw, sheets, skipped = read_excel(
@@ -1999,28 +2271,37 @@ if two_b_file and books_file:
             ] = {}
 
         two_b_raw = st.session_state[
-            "two_b_raw"
+            "portal_b2b_raw"
         ]
 
         books_raw = st.session_state[
             "books_raw"
         ]
 
+        # =====================================================
+        # COLUMN MAPPING
+        # =====================================================
+
         with st.expander(
             "🔧 Column Mapping (verify or override auto-detection)"
         ):
 
             st.caption(
-                "Har alag Excel export column names alag rakhta hai — humne "
-                "best-guess mapping kar di hai. Zaroorat ho to yahan se change karein."
+                "Har alag Excel export column names alag rakhta hai — "
+                "humne best-guess mapping kar di hai. "
+                "Zaroorat ho to yahan se change karein."
             )
 
             m1, m2 = st.columns(2)
 
+            # -------------------------------------------------
+            # 2B
+            # -------------------------------------------------
+
             with m1:
 
                 st.markdown(
-                    "**GST 2B columns**"
+                    "**GST 2B B2B columns**"
                 )
 
                 auto_2b = auto_detect(
@@ -2035,8 +2316,7 @@ if two_b_file and books_file:
 
                 for field in (
                     REQUIRED_FIELDS
-                    +
-                    OPTIONAL_FIELDS
+                    + OPTIONAL_FIELDS
                 ):
 
                     default_val = (
@@ -2049,7 +2329,8 @@ if two_b_file and books_file:
                         options_2b.index(
                             default_val
                         )
-                        if default_val
+                        if
+                        default_val
                         in options_2b
                         else 0
                     )
@@ -2060,6 +2341,10 @@ if two_b_file and books_file:
                         index=default_idx,
                         key=f"2b_{field}"
                     )
+
+            # -------------------------------------------------
+            # BOOKS
+            # -------------------------------------------------
 
             with m2:
 
@@ -2079,8 +2364,7 @@ if two_b_file and books_file:
 
                 for field in (
                     REQUIRED_FIELDS
-                    +
-                    OPTIONAL_FIELDS
+                    + OPTIONAL_FIELDS
                 ):
 
                     default_val = (
@@ -2093,7 +2377,8 @@ if two_b_file and books_file:
                         options_books.index(
                             default_val
                         )
-                        if default_val
+                        if
+                        default_val
                         in options_books
                         else 0
                     )
@@ -2111,7 +2396,9 @@ if two_b_file and books_file:
             "❌ File padhne mein error aayi"
         )
 
-        st.error(str(error))
+        st.error(
+            str(error)
+        )
 
 
 # =========================================================
@@ -2121,7 +2408,7 @@ if two_b_file and books_file:
 if (
     two_b_file
     and books_file
-    and "two_b_raw"
+    and "portal_b2b_raw"
     in st.session_state
 ):
 
@@ -2139,9 +2426,15 @@ if (
                 "Analysing GST 2B and Books..."
             ):
 
+                # -------------------------------------------------
+                # IMPORTANT:
+                # Only B2B is used for normal invoice reconciliation.
+                # CDN and RCM remain separate.
+                # -------------------------------------------------
+
                 two_b, quality_2b = standardize(
                     st.session_state[
-                        "two_b_raw"
+                        "portal_b2b_raw"
                     ],
                     overrides_2b
                 )
@@ -2154,11 +2447,13 @@ if (
                 )
 
                 if two_b.empty:
+
                     raise ValueError(
-                        "GST 2B file mein valid invoice data nahi mila."
+                        "GST 2B B2B sheet mein valid invoice data nahi mila."
                     )
 
                 if books.empty:
+
                     raise ValueError(
                         "Books file mein valid invoice data nahi mila."
                     )
@@ -2168,6 +2463,25 @@ if (
                     books,
                     tolerance,
                     enable_fuzzy=enable_fuzzy
+                )
+
+                # -------------------------------------------------
+                # PORTAL DOCUMENT ANALYSIS
+                # -------------------------------------------------
+
+                portal_stats = portal_document_stats(
+                    st.session_state.get(
+                        "portal_b2b_raw",
+                        pd.DataFrame()
+                    ),
+                    st.session_state.get(
+                        "portal_cdn_raw",
+                        pd.DataFrame()
+                    ),
+                    st.session_state.get(
+                        "portal_rcm_raw",
+                        pd.DataFrame()
+                    )
                 )
 
                 st.session_state[
@@ -2198,6 +2512,10 @@ if (
                     "selected_status"
                 ] = "Missing in 2B"
 
+                st.session_state[
+                    "portal_stats"
+                ] = portal_stats
+
                 st.session_state.setdefault(
                     "match_suggestion_overrides",
                     {}
@@ -2213,7 +2531,9 @@ if (
                 "❌ File processing error"
             )
 
-            st.error(str(error))
+            st.error(
+                str(error)
+            )
 
 
 # =========================================================
@@ -2317,29 +2637,73 @@ if "result" in st.session_state:
     total = len(result)
 
     matched = int(
-        (result["Status"] == "Matched").sum()
+        (
+            result["Status"]
+            == "Matched"
+        ).sum()
     )
 
     missing_2b = int(
-        (result["Status"] == "Missing in 2B").sum()
+        (
+            result["Status"]
+            == "Missing in 2B"
+        ).sum()
     )
 
     missing_books = int(
-        (result["Status"] == "Missing in Books").sum()
+        (
+            result["Status"]
+            == "Missing in Books"
+        ).sum()
     )
 
     mismatch = int(
-        (result["Status"] == "Value Mismatch").sum()
+        (
+            result["Status"]
+            == "Value Mismatch"
+        ).sum()
     )
 
     match_rate = round(
-        matched / total * 100,
+        (
+            matched
+            / total
+            * 100
+        ),
         1
     ) if total else 0.0
 
-    # =====================================================
-    # EXISTING DASHBOARD
-    # =====================================================
+    # ---------------------------------------------------------
+    # PORTAL STATS
+    # ---------------------------------------------------------
+
+    portal_stats = st.session_state.get(
+        "portal_stats",
+        {
+            "debit_count": 0,
+            "credit_count": 0,
+            "rcm_count": 0
+        }
+    )
+
+    debit_count = portal_stats.get(
+        "debit_count",
+        0
+    )
+
+    credit_count = portal_stats.get(
+        "credit_count",
+        0
+    )
+
+    rcm_count = portal_stats.get(
+        "rcm_count",
+        0
+    )
+
+    # ========================================================
+    # DASHBOARD
+    # ========================================================
 
     st.markdown(
         '<div class="section-title">📊 Reconciliation Dashboard</div>',
@@ -2353,9 +2717,15 @@ if "result" in st.session_state:
         st.markdown(
             f"""
             <div class="kpi blue">
-            <div class="kpi-title">TOTAL INVOICES</div>
-            <div class="kpi-value">{total:,}</div>
-            <div class="kpi-desc">All analysed records</div>
+                <div class="kpi-title">
+                    TOTAL INVOICES
+                </div>
+                <div class="kpi-value">
+                    {total:,}
+                </div>
+                <div class="kpi-desc">
+                    All analysed B2B records
+                </div>
             </div>
             """,
             unsafe_allow_html=True
@@ -2366,9 +2736,15 @@ if "result" in st.session_state:
         st.markdown(
             f"""
             <div class="kpi green">
-            <div class="kpi-title">MATCHED</div>
-            <div class="kpi-value">{matched:,}</div>
-            <div class="kpi-desc">{match_rate}% match rate</div>
+                <div class="kpi-title">
+                    MATCHED
+                </div>
+                <div class="kpi-value">
+                    {matched:,}
+                </div>
+                <div class="kpi-desc">
+                    {match_rate}% match rate
+                </div>
             </div>
             """,
             unsafe_allow_html=True
@@ -2379,9 +2755,15 @@ if "result" in st.session_state:
         st.markdown(
             f"""
             <div class="kpi red">
-            <div class="kpi-title">MISSING IN 2B</div>
-            <div class="kpi-value">{missing_2b:,}</div>
-            <div class="kpi-desc">Books → not in 2B</div>
+                <div class="kpi-title">
+                    MISSING IN 2B
+                </div>
+                <div class="kpi-value">
+                    {missing_2b:,}
+                </div>
+                <div class="kpi-desc">
+                    Books → not in 2B
+                </div>
             </div>
             """,
             unsafe_allow_html=True
@@ -2392,9 +2774,15 @@ if "result" in st.session_state:
         st.markdown(
             f"""
             <div class="kpi orange">
-            <div class="kpi-title">MISSING IN BOOKS</div>
-            <div class="kpi-value">{missing_books:,}</div>
-            <div class="kpi-desc">2B → not in Books</div>
+                <div class="kpi-title">
+                    MISSING IN BOOKS
+                </div>
+                <div class="kpi-value">
+                    {missing_books:,}
+                </div>
+                <div class="kpi-desc">
+                    2B → not in Books
+                </div>
             </div>
             """,
             unsafe_allow_html=True
@@ -2405,9 +2793,15 @@ if "result" in st.session_state:
         st.markdown(
             f"""
             <div class="kpi purple">
-            <div class="kpi-title">VALUE MISMATCH</div>
-            <div class="kpi-value">{mismatch:,}</div>
-            <div class="kpi-desc">Tax/value difference</div>
+                <div class="kpi-title">
+                    VALUE MISMATCH
+                </div>
+                <div class="kpi-value">
+                    {mismatch:,}
+                </div>
+                <div class="kpi-desc">
+                    Tax/value difference
+                </div>
             </div>
             """,
             unsafe_allow_html=True
@@ -2423,167 +2817,175 @@ if "result" in st.session_state:
         st.markdown(
             f"""
             <div class="kpi teal">
-            <div class="kpi-title">ITC AT RISK</div>
-            <div class="kpi-value">₹{itc_at_risk:,.0f}</div>
-            <div class="kpi-desc">Sum of open differences</div>
+                <div class="kpi-title">
+                    ITC AT RISK
+                </div>
+                <div class="kpi-value">
+                    ₹{itc_at_risk:,.0f}
+                </div>
+                <div class="kpi-desc">
+                    Sum of open differences
+                </div>
             </div>
             """,
             unsafe_allow_html=True
         )
 
-    # =====================================================
-    # NEW PORTAL ANALYSIS
-    # =====================================================
 
-    portal_credit = st.session_state.get(
-        "portal_credit_notes",
-        pd.DataFrame()
-    )
-
-    portal_debit = st.session_state.get(
-        "portal_debit_notes",
-        pd.DataFrame()
-    )
-
-    portal_rcm = st.session_state.get(
-        "portal_rcm",
-        pd.DataFrame()
-    )
-
-    credit_count = len(
-        portal_credit
-    )
-
-    debit_count = len(
-        portal_debit
-    )
-
-    rcm_count = len(
-        portal_rcm
-    )
+    # ========================================================
+    # NEW PORTAL DOCUMENT SUMMARY
+    # ========================================================
 
     st.markdown(
-        '<div class="section-title">🧾 Portal Document Analysis</div>',
+        '<div class="section-title">📑 GST Portal Document Analysis</div>',
         unsafe_allow_html=True
     )
+
+    d1, d2, d3 = st.columns(3)
+
+    with d1:
+
+        st.markdown(
+            f"""
+            <div class="kpi orange">
+                <div class="kpi-title">
+                    DEBIT NOTES
+                </div>
+                <div class="kpi-value">
+                    {debit_count:,}
+                </div>
+                <div class="kpi-desc">
+                    GST portal CDN records
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with d2:
+
+        st.markdown(
+            f"""
+            <div class="kpi red">
+                <div class="kpi-title">
+                    CREDIT NOTES
+                </div>
+                <div class="kpi-value">
+                    {credit_count:,}
+                </div>
+                <div class="kpi-desc">
+                    GST portal CDN records
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with d3:
+
+        st.markdown(
+            f"""
+            <div class="kpi purple">
+                <div class="kpi-title">
+                    RCM CASES
+                </div>
+                <div class="kpi-value">
+                    {rcm_count:,}
+                </div>
+                <div class="kpi-desc">
+                    Reverse Charge = Yes
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
+    # ========================================================
+    # PORTAL DOCUMENT DETAILS
+    # ========================================================
 
     p1, p2, p3 = st.columns(3)
 
     with p1:
 
-        st.markdown(
-            f"""
-            <div class="kpi green">
-            <div class="kpi-title">CREDIT NOTES</div>
-            <div class="kpi-value">{credit_count:,}</div>
-            <div class="kpi-desc">CDNR / CDNUR portal records</div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        with st.expander(
+            f"🟠 Debit Notes ({debit_count})"
+        ):
+
+            debit_df = portal_stats.get(
+                "debit_notes",
+                pd.DataFrame()
+            )
+
+            if not debit_df.empty:
+
+                st.dataframe(
+                    debit_df,
+                    use_container_width=True,
+                    hide_index=True
+                )
+
+            else:
+
+                st.info(
+                    "GST portal file mein Debit Note record nahi mila."
+                )
 
     with p2:
 
-        st.markdown(
-            f"""
-            <div class="kpi orange">
-            <div class="kpi-title">DEBIT NOTES</div>
-            <div class="kpi-value">{debit_count:,}</div>
-            <div class="kpi-desc">CDNR / CDNUR portal records</div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        with st.expander(
+            f"🔴 Credit Notes ({credit_count})"
+        ):
+
+            credit_df = portal_stats.get(
+                "credit_notes",
+                pd.DataFrame()
+            )
+
+            if not credit_df.empty:
+
+                st.dataframe(
+                    credit_df,
+                    use_container_width=True,
+                    hide_index=True
+                )
+
+            else:
+
+                st.info(
+                    "GST portal file mein Credit Note record nahi mila."
+                )
 
     with p3:
 
-        st.markdown(
-            f"""
-            <div class="kpi purple">
-            <div class="kpi-title">RCM SUPPLIES</div>
-            <div class="kpi-value">{rcm_count:,}</div>
-            <div class="kpi-desc">B2B supplies marked RCM = Yes</div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        with st.expander(
+            f"🟣 RCM Cases ({rcm_count})"
+        ):
 
-    # =====================================================
-    # NOTE DETAILS
-    # =====================================================
-
-    note_tab1, note_tab2, note_tab3 = st.tabs(
-        [
-            "🟢 Credit Notes",
-            "🟠 Debit Notes",
-            "🟣 RCM"
-        ]
-    )
-
-    with note_tab1:
-
-        if not portal_credit.empty:
-
-            st.caption(
-                "Portal se detected Credit Notes — CDNR/CDNUR."
+            rcm_df = portal_stats.get(
+                "rcm",
+                pd.DataFrame()
             )
 
-            st.dataframe(
-                portal_credit,
-                use_container_width=True,
-                hide_index=True
-            )
+            if not rcm_df.empty:
 
-        else:
+                st.dataframe(
+                    rcm_df,
+                    use_container_width=True,
+                    hide_index=True
+                )
 
-            st.info(
-                "Portal file mein Credit Note record detect nahi hua."
-            )
+            else:
 
-    with note_tab2:
+                st.info(
+                    "B2B mein Reverse Charge = Yes wala record nahi mila."
+                )
 
-        if not portal_debit.empty:
 
-            st.caption(
-                "Portal se detected Debit Notes — CDNR/CDNUR."
-            )
-
-            st.dataframe(
-                portal_debit,
-                use_container_width=True,
-                hide_index=True
-            )
-
-        else:
-
-            st.info(
-                "Portal file mein Debit Note record detect nahi hua."
-            )
-
-    with note_tab3:
-
-        if not portal_rcm.empty:
-
-            st.caption(
-                "B2B sheet mein Supply Attracts Reverse Charge = Yes "
-                "wale records."
-            )
-
-            st.dataframe(
-                portal_rcm,
-                use_container_width=True,
-                hide_index=True
-            )
-
-        else:
-
-            st.info(
-                "B2B sheet mein RCM = Yes record detect nahi hua."
-            )
-
-    # =====================================================
+    # ========================================================
     # INVOICE ANALYSIS
-    # =====================================================
+    # ========================================================
 
     st.markdown(
         '<div class="section-title">🔎 Invoice Analysis</div>',
@@ -2598,6 +3000,7 @@ if "result" in st.session_state:
             f"🔴 Missing in 2B • {missing_2b}",
             use_container_width=True
         ):
+
             st.session_state[
                 "selected_status"
             ] = "Missing in 2B"
@@ -2608,6 +3011,7 @@ if "result" in st.session_state:
             f"🟠 Missing in Books • {missing_books}",
             use_container_width=True
         ):
+
             st.session_state[
                 "selected_status"
             ] = "Missing in Books"
@@ -2618,6 +3022,7 @@ if "result" in st.session_state:
             f"🟣 Value Mismatch • {mismatch}",
             use_container_width=True
         ):
+
             st.session_state[
                 "selected_status"
             ] = "Value Mismatch"
@@ -2628,9 +3033,11 @@ if "result" in st.session_state:
             f"🟢 Matched • {matched}",
             use_container_width=True
         ):
+
             st.session_state[
                 "selected_status"
             ] = "Matched"
+
 
     selected_status = st.session_state.get(
         "selected_status",
@@ -2638,12 +3045,12 @@ if "result" in st.session_state:
     )
 
     detail = result[
-        result["Status"] == selected_status
+        result["Status"]
+        == selected_status
     ].copy()
 
     st.subheader(
-        f"📋 {selected_status} — "
-        f"{len(detail):,} Invoices"
+        f"📋 {selected_status} — {len(detail):,} Invoices"
     )
 
     explanations = {
@@ -2688,12 +3095,17 @@ if "result" in st.session_state:
         )
 
         display["Invoice Date"] = (
-            display["Invoice Date"].fillna("-")
+            display["Invoice Date"]
+            .fillna("-")
         )
 
         if search_term.strip():
 
-            term = search_term.strip().lower()
+            term = (
+                search_term
+                .strip()
+                .lower()
+            )
 
             mask = (
                 display["GSTIN"]
@@ -2718,7 +3130,9 @@ if "result" in st.session_state:
                 )
             )
 
-            display = display[mask]
+            display = display[
+                mask
+            ]
 
         st.caption(
             "✏️ 'Match Suggestion' column mein khud bhi type kar sakte ho — remarks ya manual match note."
@@ -2729,14 +3143,17 @@ if "result" in st.session_state:
             use_container_width=True,
             hide_index=True,
             disabled=[
-                c for c in display.columns
+                c
+                for c in display.columns
                 if c != "Match Suggestion"
             ],
             column_config={
                 "Match Suggestion":
                     st.column_config.TextColumn(
                         "Match Suggestion / Remarks",
-                        help="Apna remark ya manual match note yahan type karein",
+                        help=(
+                            "Apna remark ya manual match note yahan type karein"
+                        ),
                         width="large",
                     )
             },
@@ -2760,9 +3177,12 @@ if "result" in st.session_state:
                 edit_keys,
                 edited["Match Suggestion"]
             ):
+
                 overrides[k] = v
 
-        update_col, _ = st.columns([1, 3])
+        update_col, _ = st.columns(
+            [1, 3]
+        )
 
         with update_col:
 
@@ -2787,22 +3207,25 @@ if "result" in st.session_state:
                     edit_keys,
                     edited["Match Suggestion"]
                 ):
+
                     overrides[k] = v
 
                 st.success(
                     "✅ Changes saved. Ye notes ab tab tak bane rahenge jab tak koi nayi file upload na ho — dobara reconcile karne se bhi nahi udenge."
                 )
 
-        csv_bytes = edited.to_csv(
-            index=False
-        ).encode(
-            "utf-8-sig"
+        csv_bytes = (
+            edited
+            .to_csv(index=False)
+            .encode("utf-8-sig")
         )
 
         st.download_button(
             f"⬇️ Download '{selected_status}' as CSV",
             data=csv_bytes,
-            file_name=f"GST_{selected_status.replace(' ', '_')}.csv",
+            file_name=(
+                f"GST_{selected_status.replace(' ', '_')}.csv"
+            ),
             mime="text/csv",
         )
 
@@ -2812,14 +3235,14 @@ if "result" in st.session_state:
             "Is category mein koi invoice nahi hai."
         )
 
-    # =====================================================
+
+    # ========================================================
     # MANUAL SEARCH
-    # =====================================================
+    # ========================================================
 
     if (
         selected_status
-        in
-        (
+        in (
             "Missing in 2B",
             "Missing in Books"
         )
@@ -2829,13 +3252,15 @@ if "result" in st.session_state:
 
         other_df = (
             two_b
-            if selected_status == "Missing in 2B"
+            if selected_status
+            == "Missing in 2B"
             else books
         )
 
         other_label = (
             "GST 2B"
-            if selected_status == "Missing in 2B"
+            if selected_status
+            == "Missing in 2B"
             else "Books"
         )
 
@@ -2856,7 +3281,11 @@ if "result" in st.session_state:
 
             if manual_query.strip():
 
-                q = manual_query.strip().lower()
+                q = (
+                    manual_query
+                    .strip()
+                    .lower()
+                )
 
                 other_disp = other_df.copy()
 
@@ -2868,14 +3297,18 @@ if "result" in st.session_state:
                         na=False
                     )
                     |
-                    other_disp["Invoice Number"]
+                    other_disp[
+                        "Invoice Number"
+                    ]
                     .str.lower()
                     .str.contains(
                         q,
                         na=False
                     )
                     |
-                    other_disp["Party Name"]
+                    other_disp[
+                        "Party Name"
+                    ]
                     .str.lower()
                     .str.contains(
                         q,
@@ -2910,7 +3343,8 @@ if "result" in st.session_state:
                     )
 
                     found["Invoice Date"] = (
-                        found["Invoice Date"].fillna("-")
+                        found["Invoice Date"]
+                        .fillna("-")
                     )
 
                     st.dataframe(
@@ -2935,9 +3369,10 @@ if "result" in st.session_state:
                     "Search shuru karne ke liye upar type karo."
                 )
 
-    # =====================================================
+
+    # ========================================================
     # VENDOR SUMMARY
-    # =====================================================
+    # ========================================================
 
     st.markdown(
         '<div class="section-title">🏢 Vendor-wise Summary</div>',
@@ -2984,22 +3419,39 @@ if "result" in st.session_state:
         hide_index=True,
     )
 
-    # =====================================================
+
+    # ========================================================
     # ITC ANALYSIS
-    # =====================================================
+    # ========================================================
 
     st.markdown(
         '<div class="section-title">💰 ITC Analysis</div>',
         unsafe_allow_html=True
     )
 
-    books_igst = books["IGST"].sum()
-    books_cgst = books["CGST"].sum()
-    books_sgst = books["SGST"].sum()
+    books_igst = books[
+        "IGST"
+    ].sum()
 
-    two_b_igst = two_b["IGST"].sum()
-    two_b_cgst = two_b["CGST"].sum()
-    two_b_sgst = two_b["SGST"].sum()
+    books_cgst = books[
+        "CGST"
+    ].sum()
+
+    books_sgst = books[
+        "SGST"
+    ].sum()
+
+    two_b_igst = two_b[
+        "IGST"
+    ].sum()
+
+    two_b_cgst = two_b[
+        "CGST"
+    ].sum()
+
+    two_b_sgst = two_b[
+        "SGST"
+    ].sum()
 
     books_itc = (
         books_igst
@@ -3075,18 +3527,24 @@ if "result" in st.session_state:
     st.dataframe(
         tax_df.style.format(
             {
-                "Books": "₹{:,.2f}",
-                "GST 2B": "₹{:,.2f}",
-                "Difference": "₹{:,.2f}"
+                "Books":
+                    "₹{:,.2f}",
+
+                "GST 2B":
+                    "₹{:,.2f}",
+
+                "Difference":
+                    "₹{:,.2f}"
             }
         ),
         use_container_width=True,
         hide_index=True
     )
 
-    # =====================================================
+
+    # ========================================================
     # CHARTS
-    # =====================================================
+    # ========================================================
 
     st.markdown(
         '<div class="section-title">📈 Visual Analysis</div>',
@@ -3128,10 +3586,17 @@ if "result" in st.session_state:
                 title="Reconciliation Status",
                 color="Status",
                 color_discrete_map={
-                    "Matched": "#16a34a",
-                    "Missing in 2B": "#dc2626",
-                    "Missing in Books": "#ea580c",
-                    "Value Mismatch": "#7c3aed",
+                    "Matched":
+                        "#16a34a",
+
+                    "Missing in 2B":
+                        "#dc2626",
+
+                    "Missing in Books":
+                        "#ea580c",
+
+                    "Value Mismatch":
+                        "#7c3aed",
                 }
             )
 
@@ -3143,6 +3608,7 @@ if "result" in st.session_state:
                 fig,
                 use_container_width=True
             )
+
 
     with chart2:
 
@@ -3163,7 +3629,9 @@ if "result" in st.session_state:
                 labels={
                     "ITC_at_Risk":
                         "ITC at Risk (Rs.)",
-                    "Party Name": ""
+
+                    "Party Name":
+                        ""
                 },
             )
 
@@ -3216,9 +3684,10 @@ if "result" in st.session_state:
                     use_container_width=True
                 )
 
-    # =====================================================
+
+    # ========================================================
     # MONTHLY TREND
-    # =====================================================
+    # ========================================================
 
     combined_dates = pd.concat(
         [
@@ -3243,25 +3712,38 @@ if "result" in st.session_state:
     )
 
     combined_dates = combined_dates.dropna(
-        subset=["Invoice Date"]
+        subset=[
+            "Invoice Date"
+        ]
     )
 
     if not combined_dates.empty:
 
         combined_dates["Month"] = (
-            combined_dates["Invoice Date"]
+            combined_dates[
+                "Invoice Date"
+            ]
             .dt.to_period("M")
             .astype(str)
         )
 
-        monthly = combined_dates.groupby(
-            [
-                "Month",
-                "Source"
-            ]
-        )["Taxable Value"].sum().reset_index()
+        monthly = (
+            combined_dates
+            .groupby(
+                [
+                    "Month",
+                    "Source"
+                ]
+            )["Taxable Value"]
+            .sum()
+            .reset_index()
+        )
 
-        if monthly["Month"].nunique() > 1:
+        if (
+            monthly["Month"]
+            .nunique()
+            > 1
+        ):
 
             fig4 = px.bar(
                 monthly,
@@ -3269,10 +3751,16 @@ if "result" in st.session_state:
                 y="Taxable Value",
                 color="Source",
                 barmode="group",
-                title="Month-wise Taxable Value: GST 2B vs Books",
+                title=(
+                    "Month-wise Taxable Value: "
+                    "GST 2B vs Books"
+                ),
                 color_discrete_map={
-                    "GST 2B": "#2563eb",
-                    "Books": "#16a34a"
+                    "GST 2B":
+                        "#2563eb",
+
+                    "Books":
+                        "#16a34a"
                 },
             )
 
@@ -3281,20 +3769,26 @@ if "result" in st.session_state:
                 use_container_width=True
             )
 
-    # =====================================================
+
+    # ========================================================
     # PORTAL SHEETS
-    # =====================================================
+    # ========================================================
 
     with st.expander(
-        "📂 Excel Sheets Automatically Analysed"
+        "📂 GST Portal Excel Sheets Automatically Analysed"
     ):
 
-        col_a, col_b = st.columns(2)
+        st.info(
+            "Reconciliation ke liye sirf B2B invoices use kiye gaye hain. "
+            "Debit/Credit Notes aur RCM ko separately analyse kiya gaya hai."
+        )
+
+        col_a, col_b, col_c = st.columns(3)
 
         with col_a:
 
             st.subheader(
-                "📥 GST 2B"
+                "📥 B2B"
             )
 
             for sheet in st.session_state.get(
@@ -3307,62 +3801,14 @@ if "result" in st.session_state:
                     sheet
                 )
 
-            for sheet in st.session_state.get(
-                "two_b_skipped",
-                []
-            ):
-
-                st.caption(
-                    f"⏭️ Skipped (no GSTIN/Invoice column): {sheet}"
-                )
-
-            portal_info = st.session_state.get(
-                "portal_info",
-                {}
-            )
-
-            if portal_info.get(
-                "note_sheets"
-            ):
-
-                st.markdown(
-                    "**🧾 Credit/Debit Note Sheets**"
-                )
-
-                for sheet in portal_info[
-                    "note_sheets"
-                ]:
-
-                    st.write(
-                        "•",
-                        sheet
-                    )
-
-            if portal_info.get(
-                "b2b_sheets"
-            ):
-
-                st.markdown(
-                    "**🔄 B2B Sheets / RCM Scan**"
-                )
-
-                for sheet in portal_info[
-                    "b2b_sheets"
-                ]:
-
-                    st.write(
-                        "•",
-                        sheet
-                    )
-
         with col_b:
 
             st.subheader(
-                "📚 Books"
+                "📝 Debit/Credit Notes"
             )
 
             for sheet in st.session_state.get(
-                "books_sheets",
+                "portal_cdn_sheets",
                 []
             ):
 
@@ -3371,18 +3817,63 @@ if "result" in st.session_state:
                     sheet
                 )
 
+        with col_c:
+
+            st.subheader(
+                "🔄 RCM"
+            )
+
             for sheet in st.session_state.get(
-                "books_skipped",
+                "portal_rcm_sheets",
                 []
             ):
 
-                st.caption(
-                    f"⏭️ Skipped (no GSTIN/Invoice column): {sheet}"
+                st.write(
+                    "•",
+                    sheet
                 )
 
-    # =====================================================
+        st.divider()
+
+        st.caption(
+            "Other portal sheets:"
+        )
+
+        all_sheets = st.session_state.get(
+            "portal_all_sheets",
+            []
+        )
+
+        used_sheets = (
+            st.session_state.get(
+                "two_b_sheets",
+                []
+            )
+            +
+            st.session_state.get(
+                "portal_cdn_sheets",
+                []
+            )
+            +
+            st.session_state.get(
+                "portal_rcm_sheets",
+                []
+            )
+        )
+
+        for sheet in all_sheets:
+
+            if sheet not in used_sheets:
+
+                st.write(
+                    "•",
+                    sheet
+                )
+
+
+    # ========================================================
     # EXPORT
-    # =====================================================
+    # ========================================================
 
     st.markdown(
         '<div class="section-title">📥 Export Report</div>',
@@ -3406,13 +3897,17 @@ if "result" in st.session_state:
         "📊 DOWNLOAD COMPLETE EXCEL REPORT",
         data=excel_report,
         file_name="GST_Reconciliation_Report.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        mime=(
+            "application/vnd.openxmlformats-officedocument."
+            "spreadsheetml.sheet"
+        ),
         use_container_width=True,
     )
 
     st.caption(
-        "Report mein Summary, Complete Reconciliation, status-wise sheets, "
-        "Vendor Summary, Credit Notes, Debit Notes aur RCM analysis included hain."
+        "Report mein Summary, Complete Reconciliation, "
+        "status-wise sheets, aur Vendor Summary — "
+        "sab color-coded aur formatted hain."
     )
 
 
@@ -3424,6 +3919,7 @@ else:
 
     st.markdown("""
     <div class="info-box">
+
     <h3>👋 Welcome to GST Reconciliation Pro</h3>
 
     Upload your <b>GST 2B</b> and <b>Books</b> Excel files.
@@ -3432,6 +3928,12 @@ else:
 
     The software automatically detects important GST columns even when the
     column names are different — and lets you fine-tune the mapping if needed.
+
+    <br><br>
+
+    <b>GST Portal Support:</b><br>
+    B2B invoices are used for reconciliation while Debit Notes,
+    Credit Notes and RCM cases are analysed separately.
 
     <br><br>
 
@@ -3447,1375 +3949,28 @@ else:
 
     <br><br>
 
-    <b>Portal Add-on:</b>
+    <b>Portal Analysis:</b>
 
     <ul>
-        <li>GST portal multi-sheet workbook support</li>
-        <li>B2B sheet RCM Yes/No identification</li>
-        <li>CDNR / CDNUR Credit Note detection</li>
-        <li>CDNR / CDNUR Debit Note detection</li>
-        <li>Separate Credit Note, Debit Note and RCM dashboard analysis</li>
-        <li>Separate Credit Notes, Debit Notes and RCM Excel report sheets</li>
-        <li>ITC Summary sheets are not blindly added to invoice-level reconciliation</li>
+        <li>B2B sheet detection</li>
+        <li>Debit Note detection</li>
+        <li>Credit Note detection</li>
+        <li>RCM / Reverse Charge = Yes detection</li>
+        <li>Portal multi-sheet handling</li>
+        <li>Existing header-row auto detection retained</li>
     </ul>
 
-    <br>
-
-    <b>Existing features:</b>
+    <b>What's included:</b>
 
     <ul>
         <li>Manual column-mapping override for non-standard exports</li>
-        <li>Data quality checks — blank rows, duplicate invoices, invalid GSTIN format</li>
-        <li>Smart match suggestions for likely typo/formatting gaps</li>
-        <li>Vendor-wise ITC-at-risk summary and chart</li>
-        <li>Search + CSV export for any category</li>
-        <li>Professionally formatted, color-coded Excel report with a Summary sheet</li>
+        <li>Data quality checks</li>
+        <li>Smart match suggestions</li>
+        <li>Vendor-wise ITC-at-risk summary</li>
+        <li>Search + CSV export</li>
+        <li>Professionally formatted Excel report</li>
+        <li>GST Portal B2B + CDN + RCM analysis</li>
     </ul>
 
-    </div>
-    """, unsafe_allow_html=True)
-import re
-import difflib
-
-from openpyxl import load_workbook
-from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
-from openpyxl.utils import get_column_letter
-
-# =========================================================
-# PAGE
-# =========================================================
-
-st.set_page_config(
-    page_title="GST Reconciliation Pro",
-    page_icon="🧾",
-    layout="wide"
-)
-
-# =========================================================
-# CSS
-# =========================================================
-
-st.markdown("""
-<style>
-.stApp {
-    background-color: #f4f7fb;
-}
-
-[data-testid="stHeader"] {
-    background-color: transparent;
-}
-
-.hero {
-    background: linear-gradient(135deg, #0f2a5f, #1769aa);
-    padding: 30px;
-    border-radius: 20px;
-    margin-bottom: 25px;
-}
-
-.hero h1 {
-    color: white !important;
-    font-size: 34px;
-    margin: 0;
-}
-
-.hero p {
-    color: #dbeafe !important;
-    margin-top: 8px;
-}
-
-.section-title {
-    color: #0f2a5f;
-    font-size: 23px;
-    font-weight: 800;
-    margin-top: 25px;
-    margin-bottom: 15px;
-}
-
-.kpi {
-    background: white;
-    border-radius: 16px;
-    padding: 20px;
-    border: 1px solid #dbe3ef;
-    box-shadow: 0 5px 18px rgba(15,42,95,.07);
-    min-height: 125px;
-}
-
-.kpi-title {
-    color: #64748b;
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: .03em;
-}
-
-.kpi-value {
-    color: #172033;
-    font-size: 30px;
-    font-weight: 900;
-    margin-top: 8px;
-}
-
-.kpi-desc {
-    color: #94a3b8;
-    font-size: 12px;
-}
-
-.blue { border-top: 4px solid #2563eb; }
-.green { border-top: 4px solid #16a34a; }
-.red { border-top: 4px solid #dc2626; }
-.orange { border-top: 4px solid #ea580c; }
-.purple { border-top: 4px solid #7c3aed; }
-.teal { border-top: 4px solid #0d9488; }
-
-.info-box {
-    background: white;
-    padding: 18px;
-    border-radius: 13px;
-    border-left: 5px solid #2563eb;
-    border-top: 1px solid #dbe3ef;
-    border-right: 1px solid #dbe3ef;
-    border-bottom: 1px solid #dbe3ef;
-    margin: 15px 0;
-}
-
-.warn-box {
-    background: #fff7ed;
-    padding: 14px 18px;
-    border-radius: 13px;
-    border-left: 5px solid #ea580c;
-    margin: 10px 0;
-    color: #7c2d12;
-    font-size: 13px;
-}
-
-[data-testid="stFileUploaderDropzone"] {
-    background: white;
-    border: 2px dashed #b8c9df;
-    border-radius: 14px;
-}
-
-.stButton button {
-    border-radius: 10px;
-    font-weight: 700;
-}
-
-.stDownloadButton button {
-    background: #0f2a5f !important;
-    color: white !important;
-    border-radius: 10px;
-    font-weight: 700;
-}
-
-.badge {
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 700;
-}
-</style>
-""", unsafe_allow_html=True)
-
-REQUIRED_FIELDS = ["GSTIN", "Invoice", "Party", "Taxable"]
-OPTIONAL_FIELDS = ["Date", "IGST", "CGST", "SGST", "InvoiceValue"]
-
-STATUS_COLORS = {
-    "Matched": "16A34A",
-    "Missing in 2B": "DC2626",
-    "Missing in Books": "EA580C",
-    "Value Mismatch": "7C3AED",
-}
-
-# =========================================================
-# HELPERS
-# =========================================================
-
-def clean_text(value):
-    if pd.isna(value):
-        return ""
-    return str(value).strip()
-
-
-def clean_gstin(value):
-    if pd.isna(value):
-        return ""
-    return str(value).upper().replace(" ", "").strip()
-
-
-def clean_invoice(value):
-    if pd.isna(value):
-        return ""
-    value = str(value).upper().strip()
-    if value.endswith(".0"):
-        value = value[:-2]
-    return re.sub(r"[^A-Z0-9]", "", value)
-
-
-def clean_amount(value):
-    if pd.isna(value):
-        return 0.0
-    try:
-        text = str(value)
-        text = text.replace(",", "")
-        text = text.replace("₹", "")
-        text = text.replace("Rs.", "")
-        text = text.replace("Rs", "")
-        text = text.strip()
-        if text in ("", "-", "nan"):
-            return 0.0
-        return float(text)
-    except Exception:
-        return 0.0
-
-
-def is_valid_gstin(gstin):
-    """Loose structural check: 15 chars, standard pattern."""
-    if not gstin or len(gstin) != 15:
-        return False
-    pattern = r"^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$"
-    return bool(re.match(pattern, gstin))
-
-
-# =========================================================
-# COLUMN ALIASES
-# =========================================================
-
-ALIASES = {
-    "GSTIN": [
-        "GSTIN", "GSTIN/UIN", "GSTIN of Supplier", "GSTIN of supplier",
-        "Supplier GSTIN", "GST Number", "GST No", "GST No.",
-        "GSTIN of Vendor", "GSTIN/UIN of Supplier", "Vendor GSTIN"
-    ],
-    "Invoice": [
-        "Invoice Number", "Invoice number", "Invoice No", "Invoice No.",
-        "Document Number", "Document No", "Bill No", "Bill Number", "Invoice"
-    ],
-    "Date": [
-        "Invoice Date", "Invoice date", "Document Date", "Document date",
-        "Bill Date", "Date"
-    ],
-    "Party": [
-        "Party Name", "Supplier Name", "Supplier", "Vendor Name", "Vendor",
-        "Trade Name", "Legal Name", "Party", "Supplier Trade Name"
-    ],
-    "Taxable": [
-        "Taxable Value", "Taxable value", "Taxable Amount",
-        "Taxable Amount (₹)", "Taxable Amt", "Taxable"
-    ],
-    "IGST": [
-        "IGST", "IGST Amount", "IGST Amt", "Integrated Tax",
-        "Integrated Tax Amount", "Integrated Tax Amount (₹)"
-    ],
-    "CGST": [
-        "CGST", "CGST Amount", "CGST Amt", "Central Tax",
-        "Central Tax Amount", "Central Tax Amount (₹)"
-    ],
-    "SGST": [
-        "SGST", "SGST Amount", "SGST Amt", "UTGST", "State Tax",
-        "State Tax Amount", "State/UT Tax", "State/UT Tax Amount",
-        "State/UT Tax Amount (₹)"
-    ],
-    "InvoiceValue": [
-        "Invoice Value", "Invoice value", "Total Invoice Value",
-        "Total Value", "Document Value", "Invoice Amount",
-        "Total Invoice Amount", "Invoice Value (₹)"
-    ]
-}
-
-FIELD_LABELS = {
-    "GSTIN": "GSTIN",
-    "Invoice": "Invoice Number",
-    "Date": "Invoice Date",
-    "Party": "Party / Supplier Name",
-    "Taxable": "Taxable Value",
-    "IGST": "IGST",
-    "CGST": "CGST",
-    "SGST": "SGST",
-    "InvoiceValue": "Invoice Value (Total)",
-}
-
-
-def normalize_column(value):
-    return re.sub(r"[^A-Z0-9]", "", str(value).upper())
-
-
-def find_column(df, aliases):
-    columns = {normalize_column(c): c for c in df.columns}
-    for alias in aliases:
-        key = normalize_column(alias)
-        if key in columns:
-            return columns[key]
-    for column in df.columns:
-        current = normalize_column(column)
-        for alias in aliases:
-            target = normalize_column(alias)
-            if target in current or current in target:
-                return column
-    return None
-
-
-def auto_detect(df):
-    return {key: find_column(df, ALIASES[key]) for key in ALIASES}
-
-
-# =========================================================
-# HEADER ROW AUTO-DETECTION
-# =========================================================
-
-def detect_header_row(raw_df, max_scan_rows=15):
-    """
-    raw_df should be read with header=None.
-    Scans the first few rows to find the ACTUAL header row — needed
-    because many real files (including title/banner-style exports)
-    put a heading in row 1 and the real column names in row 2 or later.
-    A row qualifies only if it has BOTH a GSTIN-like AND an Invoice-like
-    column name in it.
-    """
-    scan_limit = min(max_scan_rows, len(raw_df))
-    for row_idx in range(scan_limit):
-        row_values = raw_df.iloc[row_idx].tolist()
-        norm_values = [normalize_column(v) for v in row_values if pd.notna(v)]
-        if not norm_values:
-            continue
-
-        has_gstin = any(
-            any(normalize_column(alias) in val or val in normalize_column(alias)
-                for alias in ALIASES["GSTIN"])
-            for val in norm_values
-        )
-        has_invoice = any(
-            any(normalize_column(alias) in val or val in normalize_column(alias)
-                for alias in ALIASES["Invoice"])
-            for val in norm_values
-        )
-        if has_gstin and has_invoice:
-            return row_idx
-    return None
-
-
-# =========================================================
-# READ EXCEL
-# =========================================================
-
-def read_excel(file):
-    excel = pd.ExcelFile(file)
-    all_data = []
-    valid_sheets = []
-    skipped_sheets = []
-
-    for sheet in excel.sheet_names:
-        try:
-            # Pehle bina header ke padho, taaki header row khud dhoond sakein
-            raw = pd.read_excel(file, sheet_name=sheet, header=None)
-            if raw.empty:
-                skipped_sheets.append(sheet)
-                continue
-
-            header_row_idx = detect_header_row(raw)
-            if header_row_idx is None:
-                skipped_sheets.append(sheet)
-                continue
-
-            # Ab asli header row use karke sahi se padho
-            df = pd.read_excel(file, sheet_name=sheet, header=header_row_idx)
-            df = df.dropna(axis=1, how="all")  # title-row bleed se aayi empty columns hata do
-            df = df.loc[:, ~df.columns.astype(str).str.startswith("Unnamed")]
-
-            gstin_column = find_column(df, ALIASES["GSTIN"])
-            invoice_column = find_column(df, ALIASES["Invoice"])
-
-            if gstin_column and invoice_column:
-                df["_SOURCE_SHEET"] = sheet
-                all_data.append(df)
-                valid_sheets.append(sheet)
-            else:
-                skipped_sheets.append(sheet)
-        except Exception:
-            skipped_sheets.append(sheet)
-            continue
-
-    if not all_data:
-        raise ValueError("GSTIN aur Invoice Number wale columns kisi bhi sheet mein nahi mile.")
-
-    combined = pd.concat(all_data, ignore_index=True)
-    return combined, valid_sheets, skipped_sheets
-
-
-# =========================================================
-# STANDARDIZE  (accepts optional manual column overrides)
-# =========================================================
-
-def standardize(df, overrides=None):
-    """
-    overrides: dict like {"GSTIN": "Some Column Name", ...} to force a
-    specific source column instead of auto-detection. Use "— None —" or
-    None to mean 'not mapped'.
-    """
-    overrides = overrides or {}
-    result = pd.DataFrame()
-    detected = {}
-
-    for key in ALIASES:
-        manual = overrides.get(key)
-        if manual and manual != "— None —" and manual in df.columns:
-            detected[key] = manual
-        else:
-            detected[key] = find_column(df, ALIASES[key])
-
-    if detected["GSTIN"]:
-        result["GSTIN"] = df[detected["GSTIN"]].apply(clean_gstin)
-    else:
-        result["GSTIN"] = ""
-
-    if detected["Invoice"]:
-        result["Invoice Number"] = df[detected["Invoice"]].apply(clean_invoice)
-    else:
-        result["Invoice Number"] = ""
-
-    if detected["Date"]:
-        result["Invoice Date"] = pd.to_datetime(df[detected["Date"]], errors="coerce")
-    else:
-        result["Invoice Date"] = pd.NaT
-
-    if detected["Party"]:
-        result["Party Name"] = df[detected["Party"]].apply(clean_text)
-    else:
-        result["Party Name"] = ""
-
-    if detected["Taxable"]:
-        result["Taxable Value"] = df[detected["Taxable"]].apply(clean_amount)
-    else:
-        result["Taxable Value"] = 0.0
-
-    if detected["IGST"]:
-        result["IGST"] = df[detected["IGST"]].apply(clean_amount)
-    else:
-        result["IGST"] = 0.0
-
-    if detected["CGST"]:
-        result["CGST"] = df[detected["CGST"]].apply(clean_amount)
-    else:
-        result["CGST"] = 0.0
-
-    if detected["SGST"]:
-        result["SGST"] = df[detected["SGST"]].apply(clean_amount)
-    else:
-        result["SGST"] = 0.0
-
-    if detected["InvoiceValue"]:
-        result["Invoice Value"] = df[detected["InvoiceValue"]].apply(clean_amount)
-    else:
-        result["Invoice Value"] = (
-            result["Taxable Value"] + result["IGST"] + result["CGST"] + result["SGST"]
-        )
-
-    result["Source Sheet"] = df["_SOURCE_SHEET"] if "_SOURCE_SHEET" in df.columns else ""
-
-    total_rows = len(result)
-    blank_mask = (result["GSTIN"] == "") | (result["Invoice Number"] == "")
-    dropped_rows = int(blank_mask.sum())
-
-    cleaned = result[~blank_mask].copy()
-
-    # Duplicate invoice detection (same GSTIN + Invoice appearing >1 time)
-    dup_mask = cleaned.duplicated(subset=["GSTIN", "Invoice Number"], keep=False)
-    duplicate_count = int(dup_mask.sum())
-
-    invalid_gstin_count = int(cleaned["GSTIN"].apply(lambda g: not is_valid_gstin(g)).sum())
-
-    quality = {
-        "total_rows": total_rows,
-        "dropped_rows": dropped_rows,
-        "duplicate_rows": duplicate_count,
-        "invalid_gstin_rows": invalid_gstin_count,
-        "detected_columns": detected,
-    }
-
-    return cleaned.reset_index(drop=True), quality
-
-
-# =========================================================
-# RECONCILIATION
-# =========================================================
-
-def build_dedup_key(df):
-    """
-    GSTIN + Invoice Number can repeat (rare, but real files have it).
-    A plain merge on that key would create a cross-product of every
-    duplicate pair, which silently corrupts the reconciliation.
-    We instead pair up duplicates in the order they appear (1st with 1st,
-    2nd with 2nd, ...), which mirrors how an accountant would actually
-    tie invoices together.
-    """
-    df = df.copy()
-    base_key = df["GSTIN"] + "|" + df["Invoice Number"]
-    occurrence = base_key.groupby(base_key).cumcount()
-    df["KEY"] = base_key + "|" + occurrence.astype(str)
-    return df
-
-
-def suggest_close_matches(missing_row, other_df, field="Invoice Number", cutoff=0.82):
-    """For an unmatched invoice, look for a same-GSTIN invoice in the other
-    file whose number is *almost* identical (formatting / typo difference)
-    and flag it as a probable match rather than a genuine gap."""
-    same_gstin = other_df[other_df["GSTIN"] == missing_row["GSTIN"]]
-    if same_gstin.empty:
-        return None
-    candidates = same_gstin[field].tolist()
-    best = difflib.get_close_matches(missing_row[field], candidates, n=1, cutoff=cutoff)
-    if best:
-        match_row = same_gstin[same_gstin[field] == best[0]].iloc[0]
-        return best[0], match_row.get("Invoice Value", None)
-    return None
-
-
-def reconcile(two_b, books, tolerance, enable_fuzzy=True):
-    two_b_k = build_dedup_key(two_b)
-    books_k = build_dedup_key(books)
-
-    result = pd.merge(
-        books_k, two_b_k, on="KEY", how="outer",
-        suffixes=("_Books", "_2B"), indicator=True
-    )
-
-    statuses = []
-    differences = []
-    suggestions = []
-
-    for _, row in result.iterrows():
-        if row["_merge"] == "left_only":
-            statuses.append("Missing in 2B")
-            differences.append(row["IGST_Books"] + row["CGST_Books"] + row["SGST_Books"])
-            suggestion = ""
-            if enable_fuzzy:
-                probe = {"GSTIN": row["GSTIN_Books"], "Invoice Number": row["Invoice Number_Books"]}
-                found = suggest_close_matches(probe, two_b)
-                if found:
-                    suggestion = f"Possible match in 2B: '{found[0]}' — check formatting/typo"
-            suggestions.append(suggestion)
-
-        elif row["_merge"] == "right_only":
-            statuses.append("Missing in Books")
-            differences.append(row["IGST_2B"] + row["CGST_2B"] + row["SGST_2B"])
-            suggestion = ""
-            if enable_fuzzy:
-                probe = {"GSTIN": row["GSTIN_2B"], "Invoice Number": row["Invoice Number_2B"]}
-                found = suggest_close_matches(probe, books)
-                if found:
-                    suggestion = f"Possible match in Books: '{found[0]}' — check formatting/typo"
-            suggestions.append(suggestion)
-
-        else:
-            taxable_diff = abs(row["Taxable Value_Books"] - row["Taxable Value_2B"])
-            igst_diff = abs(row["IGST_Books"] - row["IGST_2B"])
-            cgst_diff = abs(row["CGST_Books"] - row["CGST_2B"])
-            sgst_diff = abs(row["SGST_Books"] - row["SGST_2B"])
-            invoice_diff = abs(row["Invoice Value_Books"] - row["Invoice Value_2B"])
-            total_diff = igst_diff + cgst_diff + sgst_diff
-
-            if (taxable_diff <= tolerance and igst_diff <= tolerance and
-                    cgst_diff <= tolerance and sgst_diff <= tolerance and
-                    invoice_diff <= tolerance):
-                statuses.append("Matched")
-            else:
-                statuses.append("Value Mismatch")
-
-            differences.append(total_diff)
-            suggestions.append("")
-
-    result["Status"] = statuses
-    result["ITC Difference"] = differences
-    result["Match Suggestion"] = suggestions
-
-    return result
-
-
-# =========================================================
-# DISPLAY DATA
-# =========================================================
-
-def prepare_display(df):
-    output = pd.DataFrame()
-
-    def get_column(name):
-        if name in df.columns:
-            return df[name]
-        return pd.Series([""] * len(df), index=df.index)
-
-    # NOTE: an outer merge fills the *missing* side with NaN, not "" — so the
-    # fallback must treat NaN as empty too, or it silently keeps the NaN
-    # instead of falling back to the other file's value.
-    gstin_books = get_column("GSTIN_Books").fillna("")
-    gstin_2b = get_column("GSTIN_2B").fillna("")
-    output["GSTIN"] = gstin_books.where(gstin_books != "", gstin_2b)
-
-    party_books = get_column("Party Name_Books").fillna("")
-    party_2b = get_column("Party Name_2B").fillna("")
-    output["Party Name"] = party_books.where(party_books != "", party_2b)
-
-    inv_books = get_column("Invoice Number_Books").fillna("")
-    inv_2b = get_column("Invoice Number_2B").fillna("")
-    output["Invoice Number"] = inv_books.where(inv_books != "", inv_2b)
-    output["Invoice Date"] = get_column("Invoice Date_Books").where(get_column("Invoice Date_Books").notna(), get_column("Invoice Date_2B"))
-    output["Taxable - Books"] = get_column("Taxable Value_Books")
-    output["Taxable - 2B"] = get_column("Taxable Value_2B")
-    output["IGST - Books"] = get_column("IGST_Books")
-    output["IGST - 2B"] = get_column("IGST_2B")
-    output["CGST - Books"] = get_column("CGST_Books")
-    output["CGST - 2B"] = get_column("CGST_2B")
-    output["SGST - Books"] = get_column("SGST_Books")
-    output["SGST - 2B"] = get_column("SGST_2B")
-    output["Invoice Value - Books"] = get_column("Invoice Value_Books")
-    output["Invoice Value - 2B"] = get_column("Invoice Value_2B")
-    output["ITC Difference"] = get_column("ITC Difference")
-    output["Status"] = get_column("Status")
-    output["Match Suggestion"] = get_column("Match Suggestion")
-
-    return output.reset_index(drop=True)
-
-
-def apply_match_overrides(display_df):
-    """Merge in any manually typed-in Match Suggestion / remark text the
-    user has entered in the editable table, keyed by GSTIN + Invoice Number
-    so it survives switching between status filters, searching, and even
-    flows into the final Excel export."""
-    overrides = st.session_state.get("match_suggestion_overrides", {})
-    if not overrides or display_df.empty:
-        return display_df
-    keys = display_df["GSTIN"] + "|" + display_df["Invoice Number"]
-    display_df = display_df.copy()
-    display_df["Match Suggestion"] = [
-        overrides.get(k, v) for k, v in zip(keys, display_df["Match Suggestion"])
-    ]
-    return display_df
-
-
-def vendor_summary(display_df):
-    """GSTIN-wise rollup — the fastest way to see which vendors are causing
-    the most reconciliation trouble."""
-    grouped = display_df.groupby(["GSTIN", "Party Name"], dropna=False).agg(
-        Total_Invoices=("Invoice Number", "count"),
-        Matched=("Status", lambda s: (s == "Matched").sum()),
-        Missing_in_2B=("Status", lambda s: (s == "Missing in 2B").sum()),
-        Missing_in_Books=("Status", lambda s: (s == "Missing in Books").sum()),
-        Value_Mismatch=("Status", lambda s: (s == "Value Mismatch").sum()),
-        ITC_at_Risk=("ITC Difference", "sum"),
-    ).reset_index()
-
-    grouped = grouped.sort_values("ITC_at_Risk", ascending=False)
-    grouped["ITC_at_Risk"] = grouped["ITC_at_Risk"].round(2)
-    return grouped
-
-
-# =========================================================
-# EXCEL REPORT (formatted)
-# =========================================================
-
-def _style_worksheet_header(ws, ncols):
-    header_fill = PatternFill(start_color="0F2A5F", end_color="0F2A5F", fill_type="solid")
-    header_font = Font(name="Arial", bold=True, color="FFFFFF", size=10)
-    thin = Side(style="thin", color="D9D9D9")
-    border = Border(left=thin, right=thin, top=thin, bottom=thin)
-    for col in range(1, ncols + 1):
-        c = ws.cell(row=1, column=col)
-        c.fill = header_fill
-        c.font = header_font
-        c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
-        c.border = border
-    ws.freeze_panes = "A2"
-
-
-def _autofit(ws, max_width=45):
-    for col_cells in ws.columns:
-        length = max((len(str(c.value)) if c.value is not None else 0) for c in col_cells)
-        col_letter = get_column_letter(col_cells[0].column)
-        ws.column_dimensions[col_letter].width = min(max(length + 3, 10), max_width)
-
-
-def _format_data_rows(ws, ncols, status_col_index=None):
-    thin = Side(style="thin", color="EDEDED")
-    border = Border(left=thin, right=thin, top=thin, bottom=thin)
-    money_cols = set()
-    for idx, cell in enumerate(ws[1], start=1):
-        header = str(cell.value or "")
-        if any(tag in header for tag in ["Taxable", "IGST", "CGST", "SGST", "Invoice Value", "ITC"]):
-            money_cols.add(idx)
-
-    for row in ws.iter_rows(min_row=2, max_row=ws.max_row, max_col=ncols):
-        for cell in row:
-            cell.font = Font(name="Arial", size=10)
-            cell.border = border
-            if cell.column in money_cols:
-                cell.number_format = "#,##0.00"
-
-        if status_col_index:
-            status_val = row[status_col_index - 1].value
-            color = STATUS_COLORS.get(status_val)
-            if color:
-                fill = PatternFill(start_color=color, end_color=color, fill_type="solid")
-                font = Font(name="Arial", size=9, bold=True, color="FFFFFF")
-                cell = row[status_col_index - 1]
-                cell.fill = fill
-                cell.font = font
-                cell.alignment = Alignment(horizontal="center")
-
-
-def create_excel(result, quality_2b, quality_books, tolerance):
-    display = prepare_display(result)
-    display = apply_match_overrides(display)  # carry forward any manually typed remarks
-    v_summary = vendor_summary(display)
-
-    total = len(display)
-    matched = int((display["Status"] == "Matched").sum())
-    missing_2b = int((display["Status"] == "Missing in 2B").sum())
-    missing_books = int((display["Status"] == "Missing in Books").sum())
-    mismatch = int((display["Status"] == "Value Mismatch").sum())
-    itc_at_risk = display.loc[display["Status"] != "Matched", "ITC Difference"].sum()
-
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-
-        summary_df = pd.DataFrame({
-            "Metric": [
-                "Total Invoices Analysed", "Matched", "Missing in 2B",
-                "Missing in Books", "Value Mismatch", "Match Rate (%)",
-                "Total ITC at Risk (Rs.)", "Mismatch Tolerance Used (Rs.)",
-            ],
-            "Value": [
-                total, matched, missing_2b, missing_books, mismatch,
-                round((matched / total * 100), 2) if total else 0,
-                round(itc_at_risk, 2), tolerance,
-            ]
-        })
-        summary_df.to_excel(writer, sheet_name="Summary", index=False)
-
-        display_export = display.copy()
-        if "Invoice Date" in display_export.columns:
-            display_export["Invoice Date"] = pd.to_datetime(
-                display_export["Invoice Date"], errors="coerce"
-            ).dt.strftime("%d-%m-%Y")
-        display_export.to_excel(writer, sheet_name="Complete Reconciliation", index=False)
-
-        for status in ["Matched", "Missing in 2B", "Missing in Books", "Value Mismatch"]:
-            temp = display_export[display_export["Status"] == status]
-            temp.to_excel(writer, sheet_name=status[:31], index=False)
-
-        v_summary.to_excel(writer, sheet_name="Vendor Summary", index=False)
-
-    output.seek(0)
-
-    # ---- post-process formatting with openpyxl ----
-    wb = load_workbook(output)
-
-    ws_summary = wb["Summary"]
-    _style_worksheet_header(ws_summary, ws_summary.max_column)
-    _format_data_rows(ws_summary, ws_summary.max_column)
-    _autofit(ws_summary)
-
-    main_sheet_names = ["Complete Reconciliation", "Matched", "Missing in 2B",
-                        "Missing in Books", "Value Mismatch"]
-    for name in main_sheet_names:
-        ws = wb[name]
-        if ws.max_row < 1:
-            continue
-        _style_worksheet_header(ws, ws.max_column)
-        status_idx = None
-        for i, cell in enumerate(ws[1], start=1):
-            if cell.value == "Status":
-                status_idx = i
-                break
-        _format_data_rows(ws, ws.max_column, status_col_index=status_idx)
-        _autofit(ws)
-
-    ws_vendor = wb["Vendor Summary"]
-    _style_worksheet_header(ws_vendor, ws_vendor.max_column)
-    _format_data_rows(ws_vendor, ws_vendor.max_column)
-    _autofit(ws_vendor)
-
-    final_output = BytesIO()
-    wb.save(final_output)
-    final_output.seek(0)
-    return final_output
-
-
-# =========================================================
-# HEADER
-# =========================================================
-
-st.markdown("""
-<div class="hero">
-    <h1>🧾 GST Reconciliation Pro</h1>
-    <p>GST 2B vs Books • ITC Reconciliation • Vendor & Invoice Exception Analysis</p>
-</div>
-""", unsafe_allow_html=True)
-
-# =========================================================
-# SIDEBAR
-# =========================================================
-
-with st.sidebar:
-    st.header("⚙️ Reconciliation Settings")
-
-    tolerance = st.number_input(
-        "Mismatch Tolerance ₹", min_value=0.0, value=2.0, step=0.50,
-        help="Differences within this amount are still treated as a Match."
-    )
-
-    enable_fuzzy = st.checkbox(
-        "🔍 Suggest possible matches for gaps", value=True,
-        help="Flags likely formatting/typo differences instead of a genuine missing invoice."
-    )
-
-    st.divider()
-    st.subheader("🔑 Matching Key")
-    st.info("GSTIN + Invoice Number\n\n(duplicate invoices are paired in sequence)")
-
-    st.divider()
-    st.subheader("📌 Status Legend")
-    st.markdown("🟢 **Matched** — tallies within tolerance")
-    st.markdown("🔴 **Missing in 2B** — in Books, not filed by supplier")
-    st.markdown("🟠 **Missing in Books** — filed by supplier, not booked")
-    st.markdown("🟣 **Value Mismatch** — amounts differ beyond tolerance")
-
-# =========================================================
-# UPLOAD
-# =========================================================
-
-st.markdown('<div class="section-title">📂 Upload GST Data</div>', unsafe_allow_html=True)
-
-col1, col2 = st.columns(2)
-
-with col1:
-    st.subheader("📥 GST 2B File")
-    st.caption("Upload GST portal 2B Excel file. Multiple sheets supported.")
-    two_b_file = st.file_uploader("Choose GST 2B Excel", type=["xlsx", "xls"], key="gst_2b_upload")
-
-with col2:
-    st.subheader("📚 Books File")
-    st.caption("Upload your purchase/books Excel file.")
-    books_file = st.file_uploader("Choose Books Excel", type=["xlsx", "xls"], key="books_upload")
-
-# =========================================================
-# LOAD + OPTIONAL MANUAL COLUMN MAPPING
-# =========================================================
-
-overrides_2b, overrides_books = {}, {}
-
-if two_b_file and books_file:
-    try:
-        if ("two_b_raw" not in st.session_state or
-                st.session_state.get("two_b_name") != two_b_file.name):
-            raw, sheets, skipped = read_excel(two_b_file)
-            st.session_state["two_b_raw"] = raw
-            st.session_state["two_b_sheets"] = sheets
-            st.session_state["two_b_skipped"] = skipped
-            st.session_state["two_b_name"] = two_b_file.name
-            # a genuinely new 2B file means old manual remarks no longer apply
-            st.session_state["match_suggestion_overrides"] = {}
-
-        if ("books_raw" not in st.session_state or
-                st.session_state.get("books_name") != books_file.name):
-            raw, sheets, skipped = read_excel(books_file)
-            st.session_state["books_raw"] = raw
-            st.session_state["books_sheets"] = sheets
-            st.session_state["books_skipped"] = skipped
-            st.session_state["books_name"] = books_file.name
-            # a genuinely new Books file means old manual remarks no longer apply
-            st.session_state["match_suggestion_overrides"] = {}
-
-        two_b_raw = st.session_state["two_b_raw"]
-        books_raw = st.session_state["books_raw"]
-
-        with st.expander("🔧 Column Mapping (verify or override auto-detection)"):
-            st.caption(
-                "Har alag Excel export column names alag rakhta hai — humne "
-                "best-guess mapping kar di hai. Zaroorat ho to yahan se change karein."
-            )
-            m1, m2 = st.columns(2)
-
-            with m1:
-                st.markdown("**GST 2B columns**")
-                auto_2b = auto_detect(two_b_raw)
-                options_2b = ["— None —"] + list(two_b_raw.columns)
-                for field in REQUIRED_FIELDS + OPTIONAL_FIELDS:
-                    default_val = auto_2b.get(field) or "— None —"
-                    default_idx = options_2b.index(default_val) if default_val in options_2b else 0
-                    overrides_2b[field] = st.selectbox(
-                        FIELD_LABELS[field], options_2b, index=default_idx, key=f"2b_{field}"
-                    )
-
-            with m2:
-                st.markdown("**Books columns**")
-                auto_books = auto_detect(books_raw)
-                options_books = ["— None —"] + list(books_raw.columns)
-                for field in REQUIRED_FIELDS + OPTIONAL_FIELDS:
-                    default_val = auto_books.get(field) or "— None —"
-                    default_idx = options_books.index(default_val) if default_val in options_books else 0
-                    overrides_books[field] = st.selectbox(
-                        FIELD_LABELS[field], options_books, index=default_idx, key=f"bk_{field}"
-                    )
-
-    except Exception as error:
-        st.error("❌ File padhne mein error aayi")
-        st.error(str(error))
-
-# =========================================================
-# PROCESS
-# =========================================================
-
-if two_b_file and books_file and "two_b_raw" in st.session_state:
-    st.write("")
-
-    if st.button("🚀 START GST RECONCILIATION", type="primary", use_container_width=True):
-        try:
-            with st.spinner("Analysing GST 2B and Books..."):
-                two_b, quality_2b = standardize(st.session_state["two_b_raw"], overrides_2b)
-                books, quality_books = standardize(st.session_state["books_raw"], overrides_books)
-
-                if two_b.empty:
-                    raise ValueError("GST 2B file mein valid invoice data nahi mila.")
-                if books.empty:
-                    raise ValueError("Books file mein valid invoice data nahi mila.")
-
-                result = reconcile(two_b, books, tolerance, enable_fuzzy=enable_fuzzy)
-
-                st.session_state["result"] = result
-                st.session_state["two_b"] = two_b
-                st.session_state["books"] = books
-                st.session_state["quality_2b"] = quality_2b
-                st.session_state["quality_books"] = quality_books
-                st.session_state["tolerance_used"] = tolerance
-                st.session_state["selected_status"] = "Missing in 2B"
-                # NOTE: match_suggestion_overrides is intentionally NOT reset
-                # here — re-running reconciliation (e.g. after changing the
-                # tolerance) on the SAME two files should not wipe out notes
-                # the user already typed. It only resets when a new file is
-                # actually uploaded (see the file-loading block above).
-                st.session_state.setdefault("match_suggestion_overrides", {})
-
-            st.success("✅ GST Reconciliation completed successfully.")
-
-        except Exception as error:
-            st.error("❌ File processing error")
-            st.error(str(error))
-
-# =========================================================
-# DATA QUALITY PANEL
-# =========================================================
-
-if "quality_2b" in st.session_state and "result" in st.session_state:
-    q2b = st.session_state["quality_2b"]
-    qbk = st.session_state["quality_books"]
-
-    quality_flags = []
-    if q2b["dropped_rows"] or qbk["dropped_rows"]:
-        quality_flags.append(
-            f"⚠️ Rows skipped due to blank GSTIN/Invoice — 2B: {q2b['dropped_rows']}, Books: {qbk['dropped_rows']}"
-        )
-    if q2b["duplicate_rows"] or qbk["duplicate_rows"]:
-        quality_flags.append(
-            f"⚠️ Duplicate GSTIN+Invoice rows detected — 2B: {q2b['duplicate_rows']}, Books: {qbk['duplicate_rows']} "
-            "(paired in sequence during matching)"
-        )
-    if q2b["invalid_gstin_rows"] or qbk["invalid_gstin_rows"]:
-        quality_flags.append(
-            f"⚠️ Rows with non-standard GSTIN format — 2B: {q2b['invalid_gstin_rows']}, Books: {qbk['invalid_gstin_rows']}"
-        )
-
-    with st.expander("🩺 Data Quality Checks", expanded=bool(quality_flags)):
-        if quality_flags:
-            for flag in quality_flags:
-                st.markdown(f'<div class="warn-box">{flag}</div>', unsafe_allow_html=True)
-        else:
-            st.success("Koi data quality issue nahi mila — files clean hain.")
-
-# =========================================================
-# DASHBOARD
-# =========================================================
-
-if "result" in st.session_state:
-    result = st.session_state["result"]
-    two_b = st.session_state["two_b"]
-    books = st.session_state["books"]
-
-    total = len(result)
-    matched = int((result["Status"] == "Matched").sum())
-    missing_2b = int((result["Status"] == "Missing in 2B").sum())
-    missing_books = int((result["Status"] == "Missing in Books").sum())
-    mismatch = int((result["Status"] == "Value Mismatch").sum())
-    match_rate = round((matched / total * 100), 1) if total else 0.0
-
-    st.markdown('<div class="section-title">📊 Reconciliation Dashboard</div>', unsafe_allow_html=True)
-
-    c1, c2, c3, c4, c5, c6 = st.columns(6)
-
-    with c1:
-        st.markdown(f"""<div class="kpi blue"><div class="kpi-title">TOTAL INVOICES</div>
-        <div class="kpi-value">{total:,}</div><div class="kpi-desc">All analysed records</div></div>""",
-        unsafe_allow_html=True)
-
-    with c2:
-        st.markdown(f"""<div class="kpi green"><div class="kpi-title">MATCHED</div>
-        <div class="kpi-value">{matched:,}</div><div class="kpi-desc">{match_rate}% match rate</div></div>""",
-        unsafe_allow_html=True)
-
-    with c3:
-        st.markdown(f"""<div class="kpi red"><div class="kpi-title">MISSING IN 2B</div>
-        <div class="kpi-value">{missing_2b:,}</div><div class="kpi-desc">Books → not in 2B</div></div>""",
-        unsafe_allow_html=True)
-
-    with c4:
-        st.markdown(f"""<div class="kpi orange"><div class="kpi-title">MISSING IN BOOKS</div>
-        <div class="kpi-value">{missing_books:,}</div><div class="kpi-desc">2B → not in Books</div></div>""",
-        unsafe_allow_html=True)
-
-    with c5:
-        st.markdown(f"""<div class="kpi purple"><div class="kpi-title">VALUE MISMATCH</div>
-        <div class="kpi-value">{mismatch:,}</div><div class="kpi-desc">Tax/value difference</div></div>""",
-        unsafe_allow_html=True)
-
-    with c6:
-        itc_at_risk = result.loc[result["Status"] != "Matched", "ITC Difference"].sum()
-        st.markdown(f"""<div class="kpi teal"><div class="kpi-title">ITC AT RISK</div>
-        <div class="kpi-value">₹{itc_at_risk:,.0f}</div><div class="kpi-desc">Sum of open differences</div></div>""",
-        unsafe_allow_html=True)
-
-    # =====================================================
-    # INVOICE ANALYSIS
-    # =====================================================
-
-    st.markdown('<div class="section-title">🔎 Invoice Analysis</div>', unsafe_allow_html=True)
-
-    b1, b2, b3, b4 = st.columns(4)
-    with b1:
-        if st.button(f"🔴 Missing in 2B • {missing_2b}", use_container_width=True):
-            st.session_state["selected_status"] = "Missing in 2B"
-    with b2:
-        if st.button(f"🟠 Missing in Books • {missing_books}", use_container_width=True):
-            st.session_state["selected_status"] = "Missing in Books"
-    with b3:
-        if st.button(f"🟣 Value Mismatch • {mismatch}", use_container_width=True):
-            st.session_state["selected_status"] = "Value Mismatch"
-    with b4:
-        if st.button(f"🟢 Matched • {matched}", use_container_width=True):
-            st.session_state["selected_status"] = "Matched"
-
-    selected_status = st.session_state.get("selected_status", "Missing in 2B")
-    detail = result[result["Status"] == selected_status].copy()
-
-    st.subheader(f"📋 {selected_status} — {len(detail):,} Invoices")
-
-    explanations = {
-        "Missing in 2B": "Books mein invoice hai, lekin GST 2B mein nahi mila.",
-        "Missing in Books": "GST 2B mein invoice hai, lekin Books mein nahi mila.",
-        "Value Mismatch": "GSTIN aur invoice number match hain, lekin taxable/tax/invoice value different hai.",
-        "Matched": "Books aur GST 2B mein invoice successfully match hua.",
-    }
-    st.info(explanations[selected_status])
-
-    display = prepare_display(detail)
-    display = apply_match_overrides(display)
-
-    search_term = st.text_input(
-        "🔍 Search within this list (GSTIN, Invoice No, or Party Name)",
-        placeholder="e.g. 27AABCU9603R1ZM or INV/2025/1001"
-    )
-
-    if not display.empty:
-        display["Invoice Date"] = pd.to_datetime(display["Invoice Date"], errors="coerce").dt.strftime("%d-%m-%Y")
-        display["Invoice Date"] = display["Invoice Date"].fillna("-")
-
-        if search_term.strip():
-            term = search_term.strip().lower()
-            mask = (
-                display["GSTIN"].str.lower().str.contains(term, na=False) |
-                display["Invoice Number"].str.lower().str.contains(term, na=False) |
-                display["Party Name"].str.lower().str.contains(term, na=False)
-            )
-            display = display[mask]
-
-        st.caption("✏️ 'Match Suggestion' column mein khud bhi type kar sakte ho — remarks ya manual match note.")
-
-        edited = st.data_editor(
-            display,
-            use_container_width=True,
-            hide_index=True,
-            disabled=[c for c in display.columns if c != "Match Suggestion"],
-            column_config={
-                "Match Suggestion": st.column_config.TextColumn(
-                    "Match Suggestion / Remarks",
-                    help="Apna remark ya manual match note yahan type karein",
-                    width="large",
-                )
-            },
-            key=f"editor_{selected_status}",
-        )
-
-        # Keep the in-memory overrides in sync as the user types, so CSV /
-        # Excel exports taken without pressing the button are still current.
-        if not edited.empty:
-            overrides = st.session_state.setdefault("match_suggestion_overrides", {})
-            edit_keys = edited["GSTIN"] + "|" + edited["Invoice Number"]
-            for k, v in zip(edit_keys, edited["Match Suggestion"]):
-                overrides[k] = v
-
-        update_col, _ = st.columns([1, 3])
-        with update_col:
-            if st.button("💾 Update Changes", key=f"save_{selected_status}", use_container_width=True):
-                overrides = st.session_state.setdefault("match_suggestion_overrides", {})
-                edit_keys = edited["GSTIN"] + "|" + edited["Invoice Number"]
-                for k, v in zip(edit_keys, edited["Match Suggestion"]):
-                    overrides[k] = v
-                st.success(
-                    "✅ Changes saved. Ye notes ab tab tak bane rahenge jab tak "
-                    "koi nayi file upload na ho — dobara reconcile karne se bhi nahi udenge."
-                )
-
-        csv_bytes = edited.to_csv(index=False).encode("utf-8-sig")
-        st.download_button(
-            f"⬇️ Download '{selected_status}' as CSV",
-            data=csv_bytes,
-            file_name=f"GST_{selected_status.replace(' ', '_')}.csv",
-            mime="text/csv",
-        )
-    else:
-        st.success("Is category mein koi invoice nahi hai.")
-
-    if selected_status in ("Missing in 2B", "Missing in Books") and not detail.empty:
-        other_df = two_b if selected_status == "Missing in 2B" else books
-        other_label = "GST 2B" if selected_status == "Missing in 2B" else "Books"
-
-        with st.expander(f"🔎 Manually search {other_label} for a possible match", expanded=False):
-            st.caption(
-                f"Auto-suggestion ne kuch na pakda ho to yahan khud type karke {other_label} "
-                "file mein dhoond lo — GSTIN, Invoice Number, ya Party Name, kisi se bhi search ho jayega."
-            )
-
-            manual_query = st.text_input(
-                f"Type to search in {other_label}",
-                key=f"manual_search_{selected_status}",
-                placeholder="e.g. GSTIN ka part, invoice number, ya vendor ka naam"
-            )
-
-            if manual_query.strip():
-                q = manual_query.strip().lower()
-                other_disp = other_df.copy()
-                match_mask = (
-                    other_disp["GSTIN"].str.lower().str.contains(q, na=False) |
-                    other_disp["Invoice Number"].str.lower().str.contains(q, na=False) |
-                    other_disp["Party Name"].str.lower().str.contains(q, na=False)
-                )
-                found_cols = ["GSTIN", "Party Name", "Invoice Number", "Invoice Date",
-                              "Taxable Value", "IGST", "CGST", "SGST", "Invoice Value"]
-                found = other_disp.loc[match_mask, found_cols].copy()
-
-                if not found.empty:
-                    found["Invoice Date"] = pd.to_datetime(
-                        found["Invoice Date"], errors="coerce"
-                    ).dt.strftime("%d-%m-%Y")
-                    found["Invoice Date"] = found["Invoice Date"].fillna("-")
-                    st.dataframe(found, use_container_width=True, hide_index=True)
-                    st.caption(f"{len(found)} possible record(s) mile {other_label} mein.")
-                else:
-                    st.warning(f"Koi record nahi mila jo '{manual_query}' se match kare.")
-            else:
-                st.caption("Search shuru karne ke liye upar type karo.")
-
-    # =====================================================
-    # VENDOR-WISE SUMMARY
-    # =====================================================
-
-    st.markdown('<div class="section-title">🏢 Vendor-wise Summary</div>', unsafe_allow_html=True)
-    st.caption("Sabse zyada ITC-at-risk wale vendors sabse upar dikhaye gaye hain.")
-
-    full_display = prepare_display(result)
-    v_summary = vendor_summary(full_display)
-
-    st.dataframe(
-        v_summary.rename(columns={
-            "Total_Invoices": "Total Invoices",
-            "Missing_in_2B": "Missing in 2B",
-            "Missing_in_Books": "Missing in Books",
-            "Value_Mismatch": "Value Mismatch",
-            "ITC_at_Risk": "ITC at Risk (Rs.)",
-        }).style.format({"ITC at Risk (Rs.)": "₹{:,.2f}"}),
-        use_container_width=True,
-        hide_index=True,
-    )
-
-    # =====================================================
-    # ITC ANALYSIS
-    # =====================================================
-
-    st.markdown('<div class="section-title">💰 ITC Analysis</div>', unsafe_allow_html=True)
-
-    books_igst, books_cgst, books_sgst = books["IGST"].sum(), books["CGST"].sum(), books["SGST"].sum()
-    two_b_igst, two_b_cgst, two_b_sgst = two_b["IGST"].sum(), two_b["CGST"].sum(), two_b["SGST"].sum()
-    books_itc = books_igst + books_cgst + books_sgst
-    two_b_itc = two_b_igst + two_b_cgst + two_b_sgst
-    itc_difference = books_itc - two_b_itc
-
-    i1, i2, i3 = st.columns(3)
-    with i1:
-        st.metric("📚 Books Total ITC", f"₹{books_itc:,.2f}")
-    with i2:
-        st.metric("📥 GST 2B Total ITC", f"₹{two_b_itc:,.2f}")
-    with i3:
-        st.metric("⚖️ ITC Difference", f"₹{itc_difference:,.2f}")
-
-    tax_df = pd.DataFrame({
-        "Tax Component": ["IGST", "CGST", "SGST", "TOTAL ITC"],
-        "Books": [books_igst, books_cgst, books_sgst, books_itc],
-        "GST 2B": [two_b_igst, two_b_cgst, two_b_sgst, two_b_itc],
-        "Difference": [
-            books_igst - two_b_igst, books_cgst - two_b_cgst,
-            books_sgst - two_b_sgst, itc_difference
-        ]
-    })
-
-    st.dataframe(
-        tax_df.style.format({"Books": "₹{:,.2f}", "GST 2B": "₹{:,.2f}", "Difference": "₹{:,.2f}"}),
-        use_container_width=True, hide_index=True
-    )
-
-    # =====================================================
-    # CHARTS
-    # =====================================================
-
-    st.markdown('<div class="section-title">📈 Visual Analysis</div>', unsafe_allow_html=True)
-
-    chart1, chart2 = st.columns(2)
-
-    with chart1:
-        status_df = pd.DataFrame({
-            "Status": ["Matched", "Missing in 2B", "Missing in Books", "Value Mismatch"],
-            "Count": [matched, missing_2b, missing_books, mismatch]
-        })
-        status_df = status_df[status_df["Count"] > 0]
-        if not status_df.empty:
-            fig = px.pie(
-                status_df, names="Status", values="Count", hole=0.55,
-                title="Reconciliation Status",
-                color="Status",
-                color_discrete_map={
-                    "Matched": "#16a34a", "Missing in 2B": "#dc2626",
-                    "Missing in Books": "#ea580c", "Value Mismatch": "#7c3aed",
-                }
-            )
-            fig.update_traces(textinfo="percent+label")
-            st.plotly_chart(fig, use_container_width=True)
-
-    with chart2:
-        top_vendors = v_summary[v_summary["ITC_at_Risk"] > 0].head(10)
-        if not top_vendors.empty:
-            fig3 = px.bar(
-                top_vendors.sort_values("ITC_at_Risk"),
-                x="ITC_at_Risk", y="Party Name", orientation="h",
-                title="Top 10 Vendors by ITC at Risk",
-                labels={"ITC_at_Risk": "ITC at Risk (Rs.)", "Party Name": ""},
-            )
-            fig3.update_traces(marker_color="#7c3aed")
-            st.plotly_chart(fig3, use_container_width=True)
-        else:
-            itc_df = pd.DataFrame({
-                "Tax": ["IGST", "CGST", "SGST"],
-                "Amount": [two_b_igst, two_b_cgst, two_b_sgst]
-            })
-            itc_df = itc_df[itc_df["Amount"] > 0]
-            if not itc_df.empty:
-                fig2 = px.pie(itc_df, names="Tax", values="Amount", hole=0.55, title="GST 2B ITC Distribution")
-                fig2.update_traces(textinfo="percent+label")
-                st.plotly_chart(fig2, use_container_width=True)
-
-    # Monthly trend, if invoice dates are usable
-    combined_dates = pd.concat([
-        two_b[["Invoice Date", "Taxable Value"]].assign(Source="GST 2B"),
-        books[["Invoice Date", "Taxable Value"]].assign(Source="Books"),
-    ])
-    combined_dates = combined_dates.dropna(subset=["Invoice Date"])
-    if not combined_dates.empty:
-        combined_dates["Month"] = combined_dates["Invoice Date"].dt.to_period("M").astype(str)
-        monthly = combined_dates.groupby(["Month", "Source"])["Taxable Value"].sum().reset_index()
-        if monthly["Month"].nunique() > 1:
-            fig4 = px.bar(
-                monthly, x="Month", y="Taxable Value", color="Source", barmode="group",
-                title="Month-wise Taxable Value: GST 2B vs Books",
-                color_discrete_map={"GST 2B": "#2563eb", "Books": "#16a34a"},
-            )
-            st.plotly_chart(fig4, use_container_width=True)
-
-    # =====================================================
-    # SHEETS
-    # =====================================================
-
-    with st.expander("📂 Excel Sheets Automatically Analysed"):
-        col_a, col_b = st.columns(2)
-        with col_a:
-            st.subheader("📥 GST 2B")
-            for sheet in st.session_state.get("two_b_sheets", []):
-                st.write("•", sheet)
-            for sheet in st.session_state.get("two_b_skipped", []):
-                st.caption(f"⏭️ Skipped (no GSTIN/Invoice column): {sheet}")
-        with col_b:
-            st.subheader("📚 Books")
-            for sheet in st.session_state.get("books_sheets", []):
-                st.write("•", sheet)
-            for sheet in st.session_state.get("books_skipped", []):
-                st.caption(f"⏭️ Skipped (no GSTIN/Invoice column): {sheet}")
-
-    # =====================================================
-    # EXPORT
-    # =====================================================
-
-    st.markdown('<div class="section-title">📥 Export Report</div>', unsafe_allow_html=True)
-
-    excel_report = create_excel(
-        result,
-        st.session_state["quality_2b"],
-        st.session_state["quality_books"],
-        st.session_state["tolerance_used"],
-    )
-
-    st.download_button(
-        "📊 DOWNLOAD COMPLETE EXCEL REPORT",
-        data=excel_report,
-        file_name="GST_Reconciliation_Report.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        use_container_width=True,
-    )
-    st.caption(
-        "Report mein Summary, Complete Reconciliation, status-wise sheets, "
-        "aur Vendor Summary — sab color-coded aur formatted hain."
-    )
-
-# =========================================================
-# WELCOME
-# =========================================================
-
-else:
-    st.markdown("""
-    <div class="info-box">
-    <h3>👋 Welcome to GST Reconciliation Pro</h3>
-    Upload your <b>GST 2B</b> and <b>Books</b> Excel files.
-    <br><br>
-    The software automatically detects important GST columns even when the
-    column names are different — and lets you fine-tune the mapping if needed.
-    <br><br>
-    <b>Matching Key:</b><br>
-    GSTIN + Invoice Number (duplicates paired in sequence)
-    <br><br>
-    🔴 Missing in 2B<br>
-    🟠 Missing in Books<br>
-    🟣 Value Mismatch<br>
-    🟢 Matched
-    <br><br>
-    <b>What's new in this version:</b>
-    <ul>
-        <li>Manual column-mapping override for non-standard exports</li>
-        <li>Data quality checks — blank rows, duplicate invoices, invalid GSTIN format</li>
-        <li>Smart match suggestions for likely typo/formatting gaps</li>
-        <li>Vendor-wise ITC-at-risk summary and chart</li>
-        <li>Search + CSV export for any category</li>
-        <li>Professionally formatted, color-coded Excel report with a Summary sheet</li>
-    </ul>
     </div>
     """, unsafe_allow_html=True)
