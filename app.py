@@ -287,6 +287,41 @@ def auto_detect(df):
 
 
 # =========================================================
+# HEADER ROW AUTO-DETECTION
+# =========================================================
+
+def detect_header_row(raw_df, max_scan_rows=15):
+    """
+    raw_df should be read with header=None.
+    Scans the first few rows to find the ACTUAL header row — needed
+    because many real files (including title/banner-style exports)
+    put a heading in row 1 and the real column names in row 2 or later.
+    A row qualifies only if it has BOTH a GSTIN-like AND an Invoice-like
+    column name in it.
+    """
+    scan_limit = min(max_scan_rows, len(raw_df))
+    for row_idx in range(scan_limit):
+        row_values = raw_df.iloc[row_idx].tolist()
+        norm_values = [normalize_column(v) for v in row_values if pd.notna(v)]
+        if not norm_values:
+            continue
+
+        has_gstin = any(
+            any(normalize_column(alias) in val or val in normalize_column(alias)
+                for alias in ALIASES["GSTIN"])
+            for val in norm_values
+        )
+        has_invoice = any(
+            any(normalize_column(alias) in val or val in normalize_column(alias)
+                for alias in ALIASES["Invoice"])
+            for val in norm_values
+        )
+        if has_gstin and has_invoice:
+            return row_idx
+    return None
+
+
+# =========================================================
 # READ EXCEL
 # =========================================================
 
@@ -298,10 +333,21 @@ def read_excel(file):
 
     for sheet in excel.sheet_names:
         try:
-            df = pd.read_excel(file, sheet_name=sheet)
-            if df.empty:
+            # Pehle bina header ke padho, taaki header row khud dhoond sakein
+            raw = pd.read_excel(file, sheet_name=sheet, header=None)
+            if raw.empty:
                 skipped_sheets.append(sheet)
                 continue
+
+            header_row_idx = detect_header_row(raw)
+            if header_row_idx is None:
+                skipped_sheets.append(sheet)
+                continue
+
+            # Ab asli header row use karke sahi se padho
+            df = pd.read_excel(file, sheet_name=sheet, header=header_row_idx)
+            df = df.dropna(axis=1, how="all")  # title-row bleed se aayi empty columns hata do
+            df = df.loc[:, ~df.columns.astype(str).str.startswith("Unnamed")]
 
             gstin_column = find_column(df, ALIASES["GSTIN"])
             invoice_column = find_column(df, ALIASES["Invoice"])
