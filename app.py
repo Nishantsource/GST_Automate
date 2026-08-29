@@ -393,6 +393,373 @@ st.markdown("""
     margin: 6px auto 0;
     opacity: 0.6;
 }
+
+/* =========================================================
+   AI WORKER UI — playful, premium & professional
+   ========================================================= */
+
+@keyframes workerFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(-1.5deg); }
+}
+@keyframes workerFloatAlt {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-14px) rotate(1.5deg); }
+}
+@keyframes handWave2 {
+    0%, 100% { transform: rotate(8deg); }
+    50% { transform: rotate(-24deg); }
+}
+@keyframes eyeBlink {
+    0%, 92%, 100% { transform: scaleY(1); }
+    95% { transform: scaleY(.12); }
+}
+@keyframes chipDrift {
+    0%, 100% { transform: translateY(0) translateX(0); }
+    50% { transform: translateY(-7px) translateX(4px); }
+}
+@keyframes stageGlow {
+    0%, 100% { opacity: .45; transform: scale(.96); }
+    50% { opacity: .85; transform: scale(1.02); }
+}
+@keyframes processingDots {
+    0%, 20% { opacity: .25; transform: translateY(0); }
+    50% { opacity: 1; transform: translateY(-3px); }
+    80%, 100% { opacity: .25; transform: translateY(0); }
+}
+@keyframes successPop {
+    0% { transform: scale(.7); opacity: 0; }
+    70% { transform: scale(1.08); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.hero {
+    min-height: 300px;
+    border-radius: 24px;
+    padding: 28px 32px 18px !important;
+    box-shadow: 0 18px 55px rgba(15,42,95,.16);
+}
+.hero::before {
+    width: 260px !important;
+    height: 260px !important;
+    top: -115px !important;
+    right: 8% !important;
+}
+.hero::after {
+    width: 180px !important;
+    height: 180px !important;
+    bottom: -100px !important;
+    left: 8% !important;
+}
+.hero-topline {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:18px;
+    position:relative;
+    z-index:3;
+}
+.hero-kicker {
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    padding:6px 11px;
+    border:1px solid rgba(255,255,255,.24);
+    background:rgba(255,255,255,.10);
+    border-radius:999px;
+    color:#eaf3ff;
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+}
+.hero-live {
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    color:#dfffea;
+    font-size:11px;
+    font-weight:800;
+}
+.hero-live-dot {
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:#4ade80;
+    box-shadow:0 0 0 5px rgba(74,222,128,.13);
+    animation:stageGlow 1.8s ease-in-out infinite;
+}
+.hero-main-title {
+    position:relative;
+    z-index:3;
+    margin-top:13px;
+}
+.hero-main-title h1 {
+    font-size:42px !important;
+    line-height:1.04 !important;
+    letter-spacing:-.035em;
+    margin:0 !important;
+}
+.hero-main-title p {
+    max-width:760px;
+    font-size:14px !important;
+}
+.hero-pills {
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-top:15px;
+    position:relative;
+    z-index:3;
+}
+.hero-pill {
+    padding:6px 10px;
+    border-radius:999px;
+    background:rgba(255,255,255,.12);
+    border:1px solid rgba(255,255,255,.18);
+    color:#f8fbff;
+    font-size:11px;
+    font-weight:700;
+    backdrop-filter:blur(8px);
+}
+.ai-stage {
+    position:relative;
+    height:118px;
+    margin-top:10px;
+    overflow:hidden;
+    z-index:2;
+}
+.ai-stage-glow {
+    position:absolute;
+    left:12%;
+    right:12%;
+    bottom:7px;
+    height:44px;
+    border-radius:50%;
+    background:rgba(255,255,255,.16);
+    filter:blur(18px);
+    animation:stageGlow 4s ease-in-out infinite;
+}
+.worker {
+    position:absolute;
+    bottom:7px;
+    width:74px;
+    height:82px;
+    border-radius:38% 38% 30% 30%;
+    box-shadow:0 13px 24px rgba(7,22,49,.18), inset 0 -8px 0 rgba(0,0,0,.06);
+    animation:workerFloat 3.4s ease-in-out infinite;
+}
+.worker::before {
+    content:"";
+    position:absolute;
+    width:42px;
+    height:18px;
+    left:16px;
+    bottom:-8px;
+    border-radius:50%;
+    background:rgba(7,22,49,.18);
+    filter:blur(5px);
+    z-index:-1;
+}
+.worker .worker-eyes {
+    position:absolute;
+    top:24px;
+    left:20px;
+    right:20px;
+    display:flex;
+    justify-content:space-between;
+}
+.worker .worker-eyes span {
+    width:7px;
+    height:10px;
+    border-radius:50%;
+    background:#172033;
+    animation:eyeBlink 4.5s ease-in-out infinite;
+}
+.worker .worker-mouth {
+    position:absolute;
+    left:27px;
+    top:43px;
+    width:20px;
+    height:10px;
+    border-bottom:3px solid #172033;
+    border-radius:0 0 18px 18px;
+}
+.worker .worker-arm {
+    position:absolute;
+    width:13px;
+    height:39px;
+    border-radius:12px;
+    background:inherit;
+    top:34px;
+}
+.worker .left-arm { left:-9px; transform:rotate(18deg); }
+.worker .right-arm { right:-9px; transform:rotate(-18deg); }
+.worker .worker-hand {
+    position:absolute;
+    right:-21px;
+    top:9px;
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    background:inherit;
+    animation:handWave2 1.15s ease-in-out infinite;
+    transform-origin:55% 85%;
+}
+.worker-yellow { left:27%; background:linear-gradient(145deg,#fde68a,#fbbf24); animation-delay:.05s; }
+.worker-pink { left:37%; background:linear-gradient(145deg,#fbcfe8,#f472b6); animation:workerFloatAlt 3.7s ease-in-out infinite; animation-delay:.22s; }
+.worker-blue { left:48%; background:linear-gradient(145deg,#93c5fd,#2563eb); animation-delay:.42s; }
+.worker-green { left:59%; background:linear-gradient(145deg,#86efac,#10b981); animation:workerFloatAlt 3.5s ease-in-out infinite; animation-delay:.64s; }
+
+.worker-badge {
+    position:absolute;
+    top:-18px;
+    left:50%;
+    transform:translateX(-50%);
+    white-space:nowrap;
+    padding:4px 8px;
+    border-radius:999px;
+    background:rgba(255,255,255,.93);
+    color:#172033;
+    font-size:9px;
+    font-weight:900;
+    box-shadow:0 5px 16px rgba(7,22,49,.12);
+}
+.ai-chip {
+    position:absolute;
+    padding:6px 9px;
+    border-radius:10px;
+    background:rgba(255,255,255,.9);
+    color:#172033;
+    font-size:9px;
+    font-weight:900;
+    box-shadow:0 6px 18px rgba(7,22,49,.12);
+    animation:chipDrift 3.2s ease-in-out infinite;
+    backdrop-filter:blur(7px);
+}
+.ai-chip.one { left:13%; top:24px; animation-delay:.2s; }
+.ai-chip.two { left:72%; top:13px; animation-delay:.9s; }
+.ai-chip.three { left:80%; top:67px; animation-delay:1.5s; }
+.ai-chip.four { left:18%; top:70px; animation-delay:1.1s; }
+
+.kpi {
+    transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+}
+.kpi:hover {
+    transform:translateY(-5px);
+    box-shadow:0 13px 30px rgba(15,42,95,.12);
+    border-color:#c6d5e8;
+}
+.stButton button, .stDownloadButton button {
+    transition:transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+.stButton button:hover, .stDownloadButton button:hover {
+    transform:translateY(-2px);
+    box-shadow:0 8px 20px rgba(15,42,95,.14);
+    filter:brightness(1.03);
+}
+[data-testid="stFileUploaderDropzone"] {
+    transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+[data-testid="stFileUploaderDropzone"]:hover {
+    transform:translateY(-2px);
+    border-color:#6d9de8;
+    box-shadow:0 10px 26px rgba(37,99,235,.10);
+}
+.section-title {
+    position:relative;
+}
+.section-title::after {
+    content:"";
+    display:block;
+    width:52px;
+    height:3px;
+    margin-top:7px;
+    border-radius:99px;
+    background:linear-gradient(90deg,#2563eb,#7c3aed);
+}
+.worker-loader {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:28px;
+    height:82px;
+}
+.loader-worker {
+    position:relative;
+    width:54px;
+    height:62px;
+    border-radius:38% 38% 30% 30%;
+    box-shadow:0 9px 18px rgba(15,42,95,.16);
+    animation:workerFloat 1.1s ease-in-out infinite;
+}
+.loader-worker:nth-child(2) { animation-delay:.16s; }
+.loader-worker:nth-child(3) { animation-delay:.32s; }
+.loader-worker::before {
+    content:"";
+    position:absolute;
+    top:19px;
+    left:13px;
+    width:7px;
+    height:9px;
+    border-radius:50%;
+    background:#172033;
+    box-shadow:21px 0 0 #172033;
+    animation:eyeBlink 2.4s ease-in-out infinite;
+}
+.loader-worker::after {
+    content:"";
+    position:absolute;
+    left:20px;
+    top:38px;
+    width:15px;
+    height:7px;
+    border-bottom:2px solid #172033;
+    border-radius:0 0 12px 12px;
+}
+.loader-yellow { background:#fbbf24; }
+.loader-blue { background:#3b82f6; }
+.loader-green { background:#10b981; }
+.loading-dots span {
+    display:inline-block;
+    margin:0 2px;
+    animation:processingDots 1.2s ease-in-out infinite;
+}
+.loading-dots span:nth-child(2){animation-delay:.18s}
+.loading-dots span:nth-child(3){animation-delay:.36s}
+
+@media (max-width: 900px) {
+    .hero { padding:24px 20px 14px !important; }
+    .hero-main-title h1 { font-size:32px !important; }
+    .ai-stage { height:108px; }
+    .worker-yellow { left:22%; }
+    .worker-pink { left:34%; }
+    .worker-blue { left:47%; }
+    .worker-green { left:60%; }
+}
+@media (max-width: 600px) {
+    .hero-main-title h1 { font-size:27px !important; }
+    .hero-topline { align-items:flex-start; }
+    .hero-live { display:none; }
+    .ai-stage { height:100px; }
+    .worker { width:56px; height:65px; }
+    .worker .worker-eyes { top:19px; left:15px; right:15px; }
+    .worker .worker-mouth { top:35px; left:20px; width:16px; }
+    .worker .worker-arm { height:31px; top:29px; }
+    .worker-yellow { left:14%; }
+    .worker-pink { left:31%; }
+    .worker-blue { left:48%; }
+    .worker-green { left:65%; }
+    .ai-chip { display:none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration:.01ms !important;
+        animation-iteration-count:1 !important;
+        scroll-behavior:auto !important;
+    }
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -2259,14 +2626,61 @@ def create_excel(
 
 st.markdown("""
 <div class="hero">
-    <div class="hero-flex">
-        <div class="hero-text-block">
-            <h1>🧾 GST Reconciliation Pro<span class="hero-cursor"></span></h1>
-            <p>GST 2B vs Books • ITC Reconciliation • Vendor & Invoice Exception Analysis</p>
+    <div class="hero-topline">
+        <div class="hero-kicker">✦ AI-powered reconciliation workspace</div>
+        <div class="hero-live"><span class="hero-live-dot"></span> Ready to reconcile</div>
+    </div>
+
+    <div class="hero-main-title">
+        <h1>GST Reconciliation Pro<span class="hero-cursor"></span></h1>
+        <p>Turn messy GST 2B & Books data into a clean, actionable reconciliation — with smart matching, exception analysis and ITC risk visibility.</p>
+        <div class="hero-pills">
+            <span class="hero-pill">⚡ Smart Matching</span>
+            <span class="hero-pill">🧠 Fuzzy Suggestions</span>
+            <span class="hero-pill">📊 ITC Analytics</span>
+            <span class="hero-pill">📥 Excel Report</span>
         </div>
-        <div class="hero-mascot">
-            😊
-            <span class="hero-hand">👋</span>
+    </div>
+
+    <div class="ai-stage">
+        <div class="ai-stage-glow"></div>
+
+        <div class="ai-chip one">2B DATA</div>
+        <div class="ai-chip two">AI MATCH</div>
+        <div class="ai-chip three">ITC CHECK</div>
+        <div class="ai-chip four">BOOKS</div>
+
+        <div class="worker worker-yellow">
+            <span class="worker-badge">Reader</span>
+            <div class="worker-eyes"><span></span><span></span></div>
+            <div class="worker-mouth"></div>
+            <div class="worker-arm left-arm"></div>
+            <div class="worker-arm right-arm"></div>
+        </div>
+
+        <div class="worker worker-pink">
+            <span class="worker-badge">Matcher</span>
+            <div class="worker-eyes"><span></span><span></span></div>
+            <div class="worker-mouth"></div>
+            <div class="worker-arm left-arm"></div>
+            <div class="worker-arm right-arm"></div>
+        </div>
+
+        <div class="worker worker-blue">
+            <span class="worker-badge">Analyzer</span>
+            <div class="worker-eyes"><span></span><span></span></div>
+            <div class="worker-mouth"></div>
+            <div class="worker-arm left-arm"></div>
+            <div class="worker-arm right-arm"></div>
+        </div>
+
+        <div class="worker worker-green">
+            <span class="worker-badge">Auditor</span>
+            <div class="worker-eyes"><span></span><span></span></div>
+            <div class="worker-mouth"></div>
+            <div class="worker-arm left-arm"></div>
+            <div class="worker-arm right-arm"></div>
+            <div class="worker-hand"></div>
         </div>
     </div>
 </div>
@@ -2667,12 +3081,14 @@ if (
 
             mascot_placeholder.markdown("""
             <div class="run-overlay">
-                <div class="run-track">
-                    <span class="runner">🏃</span>
+                <div class="worker-loader">
+                    <div class="loader-worker loader-yellow"></div>
+                    <div class="loader-worker loader-blue"></div>
+                    <div class="loader-worker loader-green"></div>
                 </div>
-                <div class="run-ground"></div>
                 <p class="loading-text">
-                    Matching your invoices, GSTIN by GSTIN...
+                    Matching invoices, GSTIN by GSTIN
+                    <span class="loading-dots"><span>•</span><span>•</span><span>•</span></span>
                 </p>
             </div>
             """, unsafe_allow_html=True)
@@ -4180,6 +4596,7 @@ else:
     <div class="float-icons">
         <div class="float-icon">📥</div>
         <div class="float-icon">📚</div>
+        <div class="float-icon">🧠</div>
         <div class="float-icon">🔍</div>
         <div class="float-icon">📊</div>
         <div class="float-icon">✅</div>
@@ -4191,6 +4608,9 @@ else:
     <div class="info-box" style="animation: fadeInUp 0.6s ease;">
 
     <h3>👋 Welcome to GST Reconciliation Pro</h3>
+    <div style="margin:-2px 0 14px; color:#2563eb; font-size:11px; font-weight:800; letter-spacing:.05em;">
+        YOUR DIGITAL GST TEAM • READ → MATCH → ANALYSE → REPORT
+    </div>
 
     Upload your <b>GST 2B</b> and <b>Books</b> Excel files above to get started.
 
