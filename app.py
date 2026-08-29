@@ -160,6 +160,101 @@ st.markdown("""
     font-size: 11px;
     font-weight: 700;
 }
+
+/* =========================================================
+   YOOM-STYLE ANIMATIONS
+   ========================================================= */
+
+@keyframes floatUpDown {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-14px); }
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+@keyframes blinkCursor {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+.hero {
+    background: linear-gradient(-45deg, #0f2a5f, #1769aa, #2563eb, #0f2a5f);
+    background-size: 300% 300%;
+    animation: gradientShift 8s ease infinite;
+    position: relative;
+    overflow: hidden;
+}
+.hero::before, .hero::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+}
+.hero::before {
+    width: 180px; height: 180px;
+    top: -60px; right: 40px;
+    animation: floatUpDown 6s ease-in-out infinite;
+}
+.hero::after {
+    width: 110px; height: 110px;
+    bottom: -30px; left: 60px;
+    animation: floatUpDown 5s ease-in-out infinite reverse;
+}
+.hero h1 { animation: fadeInUp 0.8s ease; }
+.hero p { animation: fadeInUp 0.8s ease 0.2s backwards; }
+.hero-cursor {
+    display: inline-block;
+    width: 3px; height: 1em;
+    background: #fff;
+    margin-left: 5px;
+    animation: blinkCursor 1s step-start infinite;
+    vertical-align: middle;
+}
+
+.float-icons {
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    margin: 22px 0 30px;
+    flex-wrap: wrap;
+}
+.float-icon {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 6px 18px rgba(15,42,95,.12);
+    animation: floatUpDown 3.5s ease-in-out infinite;
+}
+.float-icon:nth-child(2) { animation-delay: .3s; }
+.float-icon:nth-child(3) { animation-delay: .6s; }
+.float-icon:nth-child(4) { animation-delay: .9s; }
+.float-icon:nth-child(5) { animation-delay: 1.2s; }
+.float-icon:nth-child(6) { animation-delay: 1.5s; }
+
+.feature-card {
+    background: white;
+    border-radius: 16px;
+    padding: 18px 20px;
+    border: 1px solid #dbe3ef;
+    box-shadow: 0 5px 18px rgba(15,42,95,.06);
+    opacity: 0;
+    animation: fadeInUp 0.6s ease forwards;
+    min-height: 150px;
+    transition: transform .2s ease;
+}
+.feature-card:hover { transform: translateY(-4px); }
+.feature-card:nth-child(1) { animation-delay: .1s; }
+.feature-card:nth-child(2) { animation-delay: .25s; }
+.feature-card:nth-child(3) { animation-delay: .4s; }
+.feature-card:nth-child(4) { animation-delay: .55s; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -2026,7 +2121,7 @@ def create_excel(
 
 st.markdown("""
 <div class="hero">
-    <h1>🧾 GST Reconciliation Pro</h1>
+    <h1>🧾 GST Reconciliation Pro<span class="hero-cursor"></span></h1>
     <p>GST 2B vs Books • ITC Reconciliation • Vendor & Invoice Exception Analysis</p>
 </div>
 """, unsafe_allow_html=True)
@@ -3918,11 +4013,22 @@ if "result" in st.session_state:
 else:
 
     st.markdown("""
-    <div class="info-box">
+    <div class="float-icons">
+        <div class="float-icon">📥</div>
+        <div class="float-icon">📚</div>
+        <div class="float-icon">🔍</div>
+        <div class="float-icon">📊</div>
+        <div class="float-icon">✅</div>
+        <div class="float-icon">💰</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="info-box" style="animation: fadeInUp 0.6s ease;">
 
     <h3>👋 Welcome to GST Reconciliation Pro</h3>
 
-    Upload your <b>GST 2B</b> and <b>Books</b> Excel files.
+    Upload your <b>GST 2B</b> and <b>Books</b> Excel files above to get started.
 
     <br><br>
 
@@ -3947,21 +4053,61 @@ else:
     🟣 Value Mismatch<br>
     🟢 Matched
 
-    <br><br>
+    </div>
+    """, unsafe_allow_html=True)
 
-    <b>Portal Analysis:</b>
+    st.markdown(
+        '<div class="section-title">✨ What you get</div>',
+        unsafe_allow_html=True
+    )
 
-    <ul>
-        <li>B2B sheet detection</li>
-        <li>Debit Note detection</li>
-        <li>Credit Note detection</li>
-        <li>RCM / Reverse Charge = Yes detection</li>
-        <li>Portal multi-sheet handling</li>
-        <li>Existing header-row auto detection retained</li>
-    </ul>
+    features = [
+        (
+            "🎯",
+            "Smart Status Matching",
+            "Matched, Missing in 2B, Missing in Books & Value Mismatch — auto classified."
+        ),
+        (
+            "🧠",
+            "Fuzzy Match Suggestions",
+            "Typo or formatting mismatches get flagged instead of marked genuinely missing."
+        ),
+        (
+            "🏢",
+            "Vendor-wise ITC Risk",
+            "See which vendors are holding up your ITC, ranked by risk amount."
+        ),
+        (
+            "📊",
+            "Polished Excel Export",
+            "Color-coded, multi-sheet, ready-to-share report in one click."
+        ),
+    ]
 
-    <b>What's included:</b>
+    f_cols = st.columns(4)
 
+    for f_col, (icon, title, desc) in zip(f_cols, features):
+
+        with f_col:
+
+            st.markdown(
+                f"""
+                <div class="feature-card">
+                    <div style="font-size:28px;">{icon}</div>
+                    <div style="font-weight:800; color:#0f2a5f; margin-top:8px;">{title}</div>
+                    <div style="color:#64748b; font-size:12.5px; margin-top:6px;">{desc}</div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+    st.markdown(
+        '<div class="section-title">🛠️ What\'s included</div>',
+        unsafe_allow_html=True
+    )
+
+    st.markdown("""
+    <div class="info-box" style="animation: fadeInUp 0.6s ease .15s backwards;">
     <ul>
         <li>Manual column-mapping override for non-standard exports</li>
         <li>Data quality checks</li>
@@ -3971,6 +4117,5 @@ else:
         <li>Professionally formatted Excel report</li>
         <li>GST Portal B2B + CDN + RCM analysis</li>
     </ul>
-
     </div>
     """, unsafe_allow_html=True)
