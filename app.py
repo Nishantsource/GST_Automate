@@ -255,6 +255,62 @@ st.markdown("""
 .feature-card:nth-child(2) { animation-delay: .25s; }
 .feature-card:nth-child(3) { animation-delay: .4s; }
 .feature-card:nth-child(4) { animation-delay: .55s; }
+
+/* =========================================================
+   LOADING MASCOTS (Yoom-style cute characters)
+   ========================================================= */
+
+@keyframes mascotBounce {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-22px) rotate(-6deg); }
+}
+@keyframes mascotBounce2 {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-16px) rotate(6deg); }
+}
+@keyframes mascotWave {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-10deg); }
+    75% { transform: rotate(10deg); }
+}
+@keyframes textPulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+.loading-mascot {
+    background: linear-gradient(135deg, #eef4ff, #f4f7fb);
+    border-radius: 20px;
+    padding: 34px 20px;
+    text-align: center;
+    border: 1px solid #dbe3ef;
+    margin: 10px 0 18px;
+}
+.mascot-row {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 26px;
+    margin-bottom: 14px;
+}
+.mascot-char {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px;
+    box-shadow: 0 8px 20px rgba(15,42,95,.15);
+}
+.mascot-1 { background: #fde68a; animation: mascotBounce 1.6s ease-in-out infinite; }
+.mascot-2 { background: #fbcfe8; animation: mascotWave 1.4s ease-in-out infinite; animation-delay: .15s; }
+.mascot-3 { background: #a7f3d0; animation: mascotBounce2 1.8s ease-in-out infinite; animation-delay: .3s; }
+.mascot-4 { background: #bfdbfe; animation: mascotBounce 2s ease-in-out infinite; animation-delay: .45s; }
+.loading-text {
+    color: #0f2a5f;
+    font-weight: 700;
+    font-size: 15px;
+    animation: textPulse 1.4s ease-in-out infinite;
+    margin: 0;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -2517,6 +2573,22 @@ if (
 
         try:
 
+            mascot_placeholder = st.empty()
+
+            mascot_placeholder.markdown("""
+            <div class="loading-mascot">
+                <div class="mascot-row">
+                    <div class="mascot-char mascot-1">🧮</div>
+                    <div class="mascot-char mascot-2">📋</div>
+                    <div class="mascot-char mascot-3">🧾</div>
+                    <div class="mascot-char mascot-4">✅</div>
+                </div>
+                <p class="loading-text">
+                    Matching your invoices, GSTIN by GSTIN...
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+
             with st.spinner(
                 "Analysing GST 2B and Books..."
             ):
@@ -2616,11 +2688,15 @@ if (
                     {}
                 )
 
+            mascot_placeholder.empty()
+
             st.success(
                 "✅ GST Reconciliation completed successfully."
             )
 
         except Exception as error:
+
+            mascot_placeholder.empty()
 
             st.error(
                 "❌ File processing error"
