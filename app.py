@@ -311,6 +311,88 @@ st.markdown("""
     animation: textPulse 1.4s ease-in-out infinite;
     margin: 0;
 }
+
+/* =========================================================
+   HERO SIDE MASCOT (waving character next to title)
+   ========================================================= */
+
+.hero-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+.hero-text-block {
+    flex: 1;
+}
+.hero-mascot {
+    width: 92px; height: 92px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 46px;
+    flex-shrink: 0;
+    animation: floatUpDown 3s ease-in-out infinite;
+    position: relative;
+}
+.hero-mascot .hero-hand {
+    position: absolute;
+    top: -6px; right: -6px;
+    font-size: 26px;
+    animation: mascotWave 1.1s ease-in-out infinite;
+    transform-origin: 70% 70%;
+}
+
+/* =========================================================
+   RUNNING LOADER OVERLAY (blur background + running character)
+   ========================================================= */
+
+@keyframes runCycle {
+    0%   { transform: translateX(-120px) scaleX(1); }
+    48%  { transform: translateX(90px) scaleX(1); }
+    50%  { transform: translateX(90px) scaleX(-1); }
+    98%  { transform: translateX(-120px) scaleX(-1); }
+    100% { transform: translateX(-120px) scaleX(1); }
+}
+@keyframes legBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+@keyframes blurIn {
+    from { backdrop-filter: blur(0px); opacity: 0; }
+    to { backdrop-filter: blur(6px); opacity: 1; }
+}
+
+.run-overlay {
+    background: rgba(244,247,251,0.75);
+    animation: blurIn 0.5s ease forwards;
+    border-radius: 20px;
+    padding: 46px 20px;
+    text-align: center;
+    border: 1px solid #dbe3ef;
+    margin: 10px 0 18px;
+    overflow: hidden;
+    position: relative;
+}
+.run-track {
+    position: relative;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.runner {
+    font-size: 44px;
+    display: inline-block;
+    animation: runCycle 2.2s linear infinite, legBounce 0.3s ease-in-out infinite;
+}
+.run-ground {
+    width: 260px;
+    height: 3px;
+    background: repeating-linear-gradient(90deg, #b8c9df 0 14px, transparent 14px 28px);
+    margin: 6px auto 0;
+    opacity: 0.6;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -2177,8 +2259,16 @@ def create_excel(
 
 st.markdown("""
 <div class="hero">
-    <h1>🧾 GST Reconciliation Pro<span class="hero-cursor"></span></h1>
-    <p>GST 2B vs Books • ITC Reconciliation • Vendor & Invoice Exception Analysis</p>
+    <div class="hero-flex">
+        <div class="hero-text-block">
+            <h1>🧾 GST Reconciliation Pro<span class="hero-cursor"></span></h1>
+            <p>GST 2B vs Books • ITC Reconciliation • Vendor & Invoice Exception Analysis</p>
+        </div>
+        <div class="hero-mascot">
+            😊
+            <span class="hero-hand">👋</span>
+        </div>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -2576,13 +2666,11 @@ if (
             mascot_placeholder = st.empty()
 
             mascot_placeholder.markdown("""
-            <div class="loading-mascot">
-                <div class="mascot-row">
-                    <div class="mascot-char mascot-1">🧮</div>
-                    <div class="mascot-char mascot-2">📋</div>
-                    <div class="mascot-char mascot-3">🧾</div>
-                    <div class="mascot-char mascot-4">✅</div>
+            <div class="run-overlay">
+                <div class="run-track">
+                    <span class="runner">🏃</span>
                 </div>
+                <div class="run-ground"></div>
                 <p class="loading-text">
                     Matching your invoices, GSTIN by GSTIN...
                 </p>
