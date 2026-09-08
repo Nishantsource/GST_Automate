@@ -5,8 +5,6 @@ import plotly.express as px
 from io import BytesIO
 import re
 import difflib
-import base64
-from pathlib import Path
 
 from openpyxl import load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -35,21 +33,234 @@ if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
-    asset_path = Path(__file__).with_name("login_character_3d.png")
+    # =====================================================
+    # CODE-ONLY LOGIN CHARACTER
+    # No PNG / no extra folder / no external asset required.
+    # Pure inline SVG + CSS animation.
+    # =====================================================
+    login_visual = """
+    <div class="login-visual-scene">
+        <svg class="login-character-svg"
+             viewBox="0 0 620 620"
+             role="img"
+             aria-label="Animated GST Reconciliation Pro business character"
+             xmlns="http://www.w3.org/2000/svg">
 
-    if asset_path.exists():
-        image_bytes = asset_path.read_bytes()
-        image_b64 = base64.b64encode(image_bytes).decode("utf-8")
-        login_visual = f'<img class="login-image" src="data:image/png;base64,{image_b64}" alt="GST Reconciliation Pro 3D character">'
-    else:
-        # Safe fallback so the app still opens if the optional PNG is not copied.
-        login_visual = """
-        <div style="text-align:center; padding:80px 20px; color:#0f2a5f;">
-            <div style="font-size:88px; animation:floatUpDown 3s ease-in-out infinite;">🧑‍💼</div>
-            <div style="font-size:18px;font-weight:800;margin-top:16px;">GST Reconciliation Pro</div>
-            <div style="color:#64748b;margin-top:6px;">Smart • Secure • Professional</div>
-        </div>
-        """
+            <defs>
+                <linearGradient id="sceneBg" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#f8fbff"/>
+                    <stop offset="58%" stop-color="#eef5ff"/>
+                    <stop offset="100%" stop-color="#ffffff"/>
+                </linearGradient>
+                <linearGradient id="suitGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#263b73"/>
+                    <stop offset="100%" stop-color="#101c45"/>
+                </linearGradient>
+                <linearGradient id="shirtGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#ffffff"/>
+                    <stop offset="100%" stop-color="#e8eef8"/>
+                </linearGradient>
+                <linearGradient id="skinGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#ffd5b5"/>
+                    <stop offset="100%" stop-color="#e7a579"/>
+                </linearGradient>
+                <linearGradient id="briefGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#26324c"/>
+                    <stop offset="100%" stop-color="#0e1629"/>
+                </linearGradient>
+                <filter id="softShadow" x="-40%" y="-40%" width="180%" height="180%">
+                    <feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#183b70" flood-opacity=".16"/>
+                </filter>
+                <filter id="smallShadow" x="-40%" y="-40%" width="180%" height="180%">
+                    <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#183b70" flood-opacity=".13"/>
+                </filter>
+            </defs>
+
+            <!-- Soft corporate background -->
+            <rect x="0" y="0" width="620" height="620" rx="30" fill="url(#sceneBg)"/>
+            <circle cx="70" cy="90" r="120" fill="#dcecff" opacity=".42"/>
+            <circle cx="555" cy="95" r="105" fill="#e6f1ff" opacity=".70"/>
+            <path d="M0 500 C150 430 245 530 350 465 C455 400 535 455 620 405 L620 620 L0 620Z"
+                  fill="#eaf3ff" opacity=".8"/>
+
+            <!-- Floating GST card -->
+            <g class="float-card card-one" filter="url(#smallShadow)">
+                <rect x="45" y="72" width="132" height="82" rx="16" fill="#fff" stroke="#d8e6f7"/>
+                <rect x="60" y="88" width="42" height="42" rx="10" fill="#e9f2ff"/>
+                <text x="81" y="115" text-anchor="middle" font-size="18" font-weight="900" fill="#1769aa">GST</text>
+                <rect x="113" y="92" width="45" height="7" rx="3.5" fill="#dbe7f5"/>
+                <rect x="113" y="107" width="34" height="7" rx="3.5" fill="#e7eef7"/>
+                <rect x="113" y="122" width="42" height="7" rx="3.5" fill="#edf2f8"/>
+            </g>
+
+            <!-- Excel card -->
+            <g class="float-card card-two" filter="url(#smallShadow)">
+                <rect x="33" y="222" width="118" height="72" rx="16" fill="#fff" stroke="#d8e6f7"/>
+                <rect x="49" y="237" width="43" height="43" rx="9" fill="#e8f8ee"/>
+                <text x="70.5" y="266" text-anchor="middle" font-size="25" font-weight="900" fill="#1f9d55">X</text>
+                <rect x="103" y="242" width="33" height="6" rx="3" fill="#dbe7f5"/>
+                <rect x="103" y="256" width="25" height="6" rx="3" fill="#e7eef7"/>
+                <rect x="103" y="270" width="30" height="6" rx="3" fill="#edf2f8"/>
+            </g>
+
+            <!-- Analytics card -->
+            <g class="float-card card-three" filter="url(#smallShadow)">
+                <rect x="360" y="80" width="154" height="100" rx="18" fill="#fff" stroke="#d8e6f7"/>
+                <text x="380" y="108" font-size="12" font-weight="800" fill="#64748b">ITC ANALYTICS</text>
+                <rect x="382" y="142" width="12" height="20" rx="3" fill="#9cc6ff"/>
+                <rect x="403" y="132" width="12" height="30" rx="3" fill="#6faeff"/>
+                <rect x="424" y="119" width="12" height="43" rx="3" fill="#3f8df5"/>
+                <path d="M380 135 L405 126 L426 112 L454 122 L482 100"
+                      fill="none" stroke="#1769aa" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M474 101 L484 99 L481 110" fill="none" stroke="#1769aa" stroke-width="3" stroke-linecap="round"/>
+            </g>
+
+            <!-- Invoice card -->
+            <g class="float-card card-four" filter="url(#smallShadow)">
+                <rect x="405" y="218" width="166" height="91" rx="18" fill="#fff" stroke="#d8e6f7"/>
+                <circle cx="432" cy="249" r="16" fill="#eaf3ff"/>
+                <text x="432" y="255" text-anchor="middle" font-size="15" font-weight="900" fill="#1769aa">₹</text>
+                <text x="458" y="246" font-size="12" font-weight="900" fill="#172033">INVOICE</text>
+                <rect x="458" y="258" width="83" height="6" rx="3" fill="#dbe7f5"/>
+                <rect x="458" y="271" width="66" height="6" rx="3" fill="#e7eef7"/>
+                <rect x="458" y="284" width="76" height="6" rx="3" fill="#edf2f8"/>
+            </g>
+
+            <!-- Reconciliation checks -->
+            <g class="float-card card-five" filter="url(#smallShadow)">
+                <rect x="410" y="348" width="154" height="108" rx="18" fill="#fff" stroke="#d8e6f7"/>
+                <text x="429" y="373" font-size="11" font-weight="900" fill="#64748b">RECONCILE</text>
+                <circle cx="431" cy="394" r="9" fill="#dcfce7"/>
+                <path d="M426 394 l4 4 l7 -8" fill="none" stroke="#16a34a" stroke-width="2.5"/>
+                <text x="447" y="398" font-size="11" fill="#334155">2B Portal</text>
+                <circle cx="431" cy="419" r="9" fill="#dcfce7"/>
+                <path d="M426 419 l4 4 l7 -8" fill="none" stroke="#16a34a" stroke-width="2.5"/>
+                <text x="447" y="423" font-size="11" fill="#334155">Books</text>
+                <circle cx="431" cy="444" r="9" fill="#dcfce7"/>
+                <path d="M426 444 l4 4 l7 -8" fill="none" stroke="#16a34a" stroke-width="2.5"/>
+                <text x="447" y="448" font-size="11" fill="#334155">Matched</text>
+            </g>
+
+            <!-- Desk / floor -->
+            <ellipse cx="265" cy="543" rx="198" ry="30" fill="#cfe0f4" opacity=".55"/>
+            <rect x="120" y="496" width="305" height="17" rx="8.5" fill="#dce9f7"/>
+            <rect x="143" y="512" width="13" height="55" rx="6" fill="#c6d8ed"/>
+            <rect x="389" y="512" width="13" height="55" rx="6" fill="#c6d8ed"/>
+
+            <!-- Books -->
+            <g class="books" filter="url(#smallShadow)">
+                <rect x="88" y="450" width="105" height="18" rx="5" fill="#24477c"/>
+                <rect x="94" y="432" width="105" height="18" rx="5" fill="#3569a8"/>
+                <rect x="100" y="414" width="105" height="18" rx="5" fill="#173b70"/>
+                <text x="151" y="427" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">COMPLIANCE</text>
+                <text x="146" y="445" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">TAX</text>
+                <text x="140" y="463" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">GST</text>
+            </g>
+
+            <!-- Character shadow -->
+            <ellipse cx="275" cy="505" rx="78" ry="15" fill="#9eb6d5" opacity=".35"/>
+
+            <!-- Animated character -->
+            <g class="character">
+                <!-- back arm -->
+                <g class="char-arm-back">
+                    <path d="M225 333 C205 350 195 374 183 398"
+                          fill="none" stroke="#172b59" stroke-width="24" stroke-linecap="round"/>
+                    <circle cx="181" cy="400" r="12" fill="url(#skinGrad)"/>
+                </g>
+
+                <!-- legs -->
+                <g class="char-leg-a">
+                    <path d="M250 425 L238 482" fill="none" stroke="#18264b" stroke-width="28" stroke-linecap="round"/>
+                    <path d="M235 485 C224 486 216 493 213 502 C212 508 218 511 229 511 L257 511 C261 503 253 492 235 485Z"
+                          fill="#fff"/>
+                </g>
+                <g class="char-leg-b">
+                    <path d="M292 425 L313 478" fill="none" stroke="#1d2e58" stroke-width="28" stroke-linecap="round"/>
+                    <path d="M308 478 C318 480 327 487 330 496 C332 503 326 508 315 508 L287 508 C284 500 291 488 308 478Z"
+                          fill="#fff"/>
+                </g>
+
+                <!-- body -->
+                <g class="char-body">
+                    <path d="M222 318 C235 303 274 299 294 318 L307 420
+                             C292 434 246 434 224 420Z"
+                          fill="url(#suitGrad)" filter="url(#smallShadow)"/>
+                    <path d="M252 316 L274 316 L280 350 L264 372 L247 350Z"
+                          fill="url(#shirtGrad)"/>
+                    <path d="M260 325 L273 325 L276 371 L267 385 L258 371Z"
+                          fill="#26304d"/>
+                    <path d="M240 338 L224 353 L232 399" fill="none" stroke="#334c83" stroke-width="6" opacity=".7"/>
+                    <path d="M286 337 L302 352 L296 399" fill="none" stroke="#334c83" stroke-width="6" opacity=".7"/>
+                </g>
+
+                <!-- presenting arm -->
+                <g class="char-arm-front">
+                    <path d="M294 334 C314 347 325 361 346 366"
+                          fill="none" stroke="#172b59" stroke-width="25" stroke-linecap="round"/>
+                    <path d="M345 366 C358 368 369 362 380 354"
+                          fill="none" stroke="url(#skinGrad)" stroke-width="13" stroke-linecap="round"/>
+                    <circle cx="382" cy="353" r="11" fill="url(#skinGrad)"/>
+                </g>
+
+                <!-- neck -->
+                <path d="M252 299 L252 320 Q264 331 277 320 L277 299Z" fill="url(#skinGrad)"/>
+
+                <!-- head -->
+                <g class="char-head">
+                    <ellipse cx="265" cy="262" rx="48" ry="54" fill="url(#skinGrad)" filter="url(#smallShadow)"/>
+                    <!-- ears -->
+                    <circle cx="218" cy="270" r="10" fill="#efb18a"/>
+                    <circle cx="312" cy="270" r="10" fill="#efb18a"/>
+                    <!-- hair -->
+                    <path d="M220 249 C217 220 236 197 267 198
+                             C294 197 311 215 310 245
+                             C300 232 290 226 278 226
+                             C267 216 251 218 240 229
+                             C233 235 227 243 220 249Z"
+                          fill="#2a2530"/>
+                    <path d="M228 235 C241 214 258 207 275 210"
+                          fill="none" stroke="#493746" stroke-width="7" stroke-linecap="round" opacity=".65"/>
+                    <!-- face -->
+                    <ellipse cx="247" cy="263" rx="4" ry="6" fill="#342b31"/>
+                    <ellipse cx="284" cy="263" rx="4" ry="6" fill="#342b31"/>
+                    <path d="M257 281 Q266 288 275 281" fill="none" stroke="#a34f4c" stroke-width="3" stroke-linecap="round"/>
+                    <path d="M258 273 Q265 277 272 273" fill="none" stroke="#c87f68" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="232" cy="279" r="7" fill="#f29b91" opacity=".24"/>
+                    <circle cx="297" cy="279" r="7" fill="#f29b91" opacity=".24"/>
+                </g>
+
+                <!-- briefcase -->
+                <g class="char-briefcase">
+                    <rect x="175" y="370" width="65" height="49" rx="9" fill="url(#briefGrad)" filter="url(#smallShadow)"/>
+                    <path d="M195 370 V360 Q195 353 202 353 H214 Q221 353 221 360 V370"
+                          fill="none" stroke="#46526e" stroke-width="5"/>
+                    <rect x="175" y="390" width="65" height="5" fill="#3b4965"/>
+                    <circle cx="207" cy="393" r="3" fill="#c9d4e4"/>
+                </g>
+            </g>
+
+            <!-- Plant -->
+            <g class="plant">
+                <path d="M505 500 C500 463 508 440 526 423" fill="none" stroke="#4a8b5b" stroke-width="5" stroke-linecap="round"/>
+                <path d="M513 468 C492 456 483 440 489 426 C507 429 518 443 513 468Z" fill="#79b47d"/>
+                <path d="M516 454 C530 437 546 433 559 441 C549 457 533 464 516 454Z" fill="#5f9f69"/>
+                <path d="M504 492 C486 482 478 469 481 458 C498 460 508 473 504 492Z" fill="#8ac38b"/>
+                <path d="M498 495 H542 L535 526 Q520 536 505 526Z" fill="#f8fafc" stroke="#d7e1ec"/>
+                <path d="M501 501 H539" stroke="#d2dce8" stroke-width="3"/>
+            </g>
+
+            <!-- Floating sparkles -->
+            <g class="sparkles" fill="#6ea8ef">
+                <circle cx="190" cy="150" r="4"/>
+                <circle cx="332" cy="205" r="3"/>
+                <circle cx="570" cy="168" r="4"/>
+                <circle cx="380" cy="320" r="3"/>
+            </g>
+        </svg>
+    </div>
+    """
+
 
     st.markdown('<div class="login-page"><div class="login-shell">', unsafe_allow_html=True)
 
@@ -533,6 +744,141 @@ st.markdown("""
     margin: 10px 0 24px;
     font-size: 14px;
 }
+.login-visual-scene {
+    width: 100%;
+    max-width: 640px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: loginImageIn .85s ease both;
+}
+.login-character-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    overflow: visible;
+    filter: drop-shadow(0 22px 35px rgba(15,42,95,.12));
+}
+.character {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: characterFloat 3.8s ease-in-out infinite;
+}
+.char-body {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: bodyBreath 2.8s ease-in-out infinite;
+}
+.char-head {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: headNod 3.4s ease-in-out infinite;
+}
+.char-arm-front {
+    transform-box: fill-box;
+    transform-origin: 294px 334px;
+    animation: presentArm 2.2s ease-in-out infinite;
+}
+.char-arm-back {
+    transform-box: fill-box;
+    transform-origin: 225px 333px;
+    animation: backArm 2.6s ease-in-out infinite;
+}
+.char-leg-a {
+    transform-box: fill-box;
+    transform-origin: 250px 425px;
+    animation: walkLegA 1.05s ease-in-out infinite;
+}
+.char-leg-b {
+    transform-box: fill-box;
+    transform-origin: 292px 425px;
+    animation: walkLegB 1.05s ease-in-out infinite;
+}
+.char-briefcase {
+    transform-box: fill-box;
+    transform-origin: 208px 395px;
+    animation: briefcaseSwing 1.05s ease-in-out infinite;
+}
+.float-card {
+    transform-box: fill-box;
+    transform-origin: center;
+}
+.card-one { animation: cardFloat1 4.8s ease-in-out infinite; }
+.card-two { animation: cardFloat2 4.2s ease-in-out .4s infinite; }
+.card-three { animation: cardFloat3 5.1s ease-in-out .2s infinite; }
+.card-four { animation: cardFloat4 4.6s ease-in-out .7s infinite; }
+.card-five { animation: cardFloat5 4.9s ease-in-out .3s infinite; }
+.books { animation: tinyFloat 3.5s ease-in-out infinite; }
+.plant { animation: plantSway 4s ease-in-out infinite; transform-box: fill-box; transform-origin: center bottom; }
+.sparkles { animation: sparklePulse 2.4s ease-in-out infinite; }
+
+@keyframes characterFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-7px); }
+}
+@keyframes bodyBreath {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(1.012); }
+}
+@keyframes headNod {
+    0%, 100% { transform: rotate(0deg); }
+    45% { transform: rotate(-2deg); }
+    75% { transform: rotate(1.5deg); }
+}
+@keyframes presentArm {
+    0%, 100% { transform: rotate(0deg); }
+    30% { transform: rotate(-4deg); }
+    60% { transform: rotate(4deg); }
+}
+@keyframes backArm {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(5deg); }
+}
+@keyframes walkLegA {
+    0%, 100% { transform: rotate(3deg); }
+    50% { transform: rotate(-7deg); }
+}
+@keyframes walkLegB {
+    0%, 100% { transform: rotate(-7deg); }
+    50% { transform: rotate(3deg); }
+}
+@keyframes briefcaseSwing {
+    0%, 100% { transform: rotate(3deg); }
+    50% { transform: rotate(-5deg); }
+}
+@keyframes cardFloat1 {
+    0%, 100% { transform: translate(0,0) rotate(0deg); }
+    50% { transform: translate(4px,-9px) rotate(-1deg); }
+}
+@keyframes cardFloat2 {
+    0%, 100% { transform: translate(0,0) rotate(0deg); }
+    50% { transform: translate(-5px,7px) rotate(1deg); }
+}
+@keyframes cardFloat3 {
+    0%, 100% { transform: translate(0,0) rotate(0deg); }
+    50% { transform: translate(5px,-8px) rotate(1deg); }
+}
+@keyframes cardFloat4 {
+    0%, 100% { transform: translate(0,0) rotate(0deg); }
+    50% { transform: translate(-5px,-6px) rotate(-1deg); }
+}
+@keyframes cardFloat5 {
+    0%, 100% { transform: translate(0,0) rotate(0deg); }
+    50% { transform: translate(4px,7px) rotate(1deg); }
+}
+@keyframes tinyFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+@keyframes plantSway {
+    0%, 100% { transform: rotate(-1deg); }
+    50% { transform: rotate(2deg); }
+}
+@keyframes sparklePulse {
+    0%, 100% { opacity: .35; }
+    50% { opacity: 1; }
+}
+
 .login-image-wrap {
     display: flex;
     align-items: center;
@@ -547,8 +893,6 @@ st.markdown("""
     max-width: 640px;
     border-radius: 22px;
     display: block;
-    animation: loginImageIn .85s ease both, loginFloat 5s ease-in-out 1s infinite;
-    filter: drop-shadow(0 22px 35px rgba(15,42,95,.12));
 }
 .login-form-wrap {
     padding: 54px 58px 46px;
