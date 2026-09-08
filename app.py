@@ -77,6 +77,27 @@ if not st.session_state.authenticated:
     transform-origin: 294px 334px;
     animation: presentArm 2.2s ease-in-out infinite;
 }
+
+.char-hand-front,
+.char-hand-back {
+    transform-box: fill-box;
+    transform-origin: center;
+}
+.char-hand-front {
+    animation: handFrontMove 2.2s ease-in-out infinite;
+}
+.char-hand-back {
+    animation: handBackMove 2.6s ease-in-out infinite;
+}
+@keyframes handFrontMove {
+    0%, 100% { transform: rotate(0deg); }
+    30% { transform: rotate(-2deg); }
+    60% { transform: rotate(2deg); }
+}
+@keyframes handBackMove {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(2deg); }
+}
 .char-arm-back {
     transform-box: fill-box;
     transform-origin: 225px 333px;
@@ -306,7 +327,27 @@ if not st.session_state.authenticated:
                 <g class="char-arm-back">
                     <path d="M225 333 C205 350 195 374 183 398"
                           fill="none" stroke="#172b59" stroke-width="24" stroke-linecap="round"/>
-                    <circle cx="181" cy="400" r="12" fill="url(#skinGrad)"/>
+                    <g class="char-hand-back">
+    <path d="M183 391
+             C178 389 173 392 171 397
+             L168 404
+             C167 407 169 410 172 409
+             L176 405
+             L175 412
+             C175 415 178 416 180 413
+             L183 408
+             L183 413
+             C184 416 187 416 188 413
+             L188 406
+             L191 410
+             C193 412 196 410 195 407
+             L190 397
+             C188 393 186 392 183 391Z"
+          fill="url(#skinGrad)"
+          stroke="#d99570"
+          stroke-width="1.5"
+          stroke-linejoin="round"/>
+</g>
                 </g>
 
                 <!-- legs -->
@@ -340,7 +381,27 @@ if not st.session_state.authenticated:
                           fill="none" stroke="#172b59" stroke-width="25" stroke-linecap="round"/>
                     <path d="M345 366 C358 368 369 362 380 354"
                           fill="none" stroke="url(#skinGrad)" stroke-width="13" stroke-linecap="round"/>
-                    <circle cx="382" cy="353" r="11" fill="url(#skinGrad)"/>
+                    <g class="char-hand-front">
+    <path d="M380 345
+             C384 341 390 342 392 346
+             L396 353
+             C398 356 397 359 394 360
+             L390 357
+             L392 364
+             C393 367 390 369 388 366
+             L384 360
+             L385 367
+             C385 370 382 371 380 368
+             L378 360
+             L375 365
+             C373 368 370 366 371 363
+             L376 351
+             C377 348 378 346 380 345Z"
+          fill="url(#skinGrad)"
+          stroke="#d99570"
+          stroke-width="1.5"
+          stroke-linejoin="round"/>
+</g>
                 </g>
 
                 <!-- neck -->
