@@ -5,6 +5,8 @@ import plotly.express as px
 from io import BytesIO
 import re
 import difflib
+import base64
+from pathlib import Path
 
 from openpyxl import load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -20,6 +22,87 @@ st.set_page_config(
     page_icon="🧾",
     layout="wide"
 )
+
+
+# =========================================================
+# LOGIN / AUTHENTICATION
+# =========================================================
+# Login credentials requested for the current GST Reconciliation Pro build.
+LOGIN_ID = "9560838810"
+LOGIN_PASSWORD = "nishant@123"
+
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+if not st.session_state.authenticated:
+    asset_path = Path(__file__).with_name("login_character_3d.png")
+
+    if asset_path.exists():
+        image_bytes = asset_path.read_bytes()
+        image_b64 = base64.b64encode(image_bytes).decode("utf-8")
+        login_visual = f'<img class="login-image" src="data:image/png;base64,{image_b64}" alt="GST Reconciliation Pro 3D character">'
+    else:
+        # Safe fallback so the app still opens if the optional PNG is not copied.
+        login_visual = """
+        <div style="text-align:center; padding:80px 20px; color:#0f2a5f;">
+            <div style="font-size:88px; animation:floatUpDown 3s ease-in-out infinite;">🧑‍💼</div>
+            <div style="font-size:18px;font-weight:800;margin-top:16px;">GST Reconciliation Pro</div>
+            <div style="color:#64748b;margin-top:6px;">Smart • Secure • Professional</div>
+        </div>
+        """
+
+    st.markdown('<div class="login-page"><div class="login-shell">', unsafe_allow_html=True)
+
+    left_col, right_col = st.columns([1.08, 0.92], gap="small")
+
+    with left_col:
+        st.markdown(
+            f'<div class="login-image-wrap">{login_visual}</div>',
+            unsafe_allow_html=True
+        )
+
+    with right_col:
+        st.markdown('<div class="login-form-wrap">', unsafe_allow_html=True)
+        st.markdown('<div class="login-brand">GST • TAX • COMPLIANCE</div>', unsafe_allow_html=True)
+        st.markdown('<h1 class="login-title">GST Reconciliation Pro</h1>', unsafe_allow_html=True)
+        st.markdown('<div class="login-subtitle">Match&nbsp;&nbsp;|&nbsp;&nbsp;Verify&nbsp;&nbsp;|&nbsp;&nbsp;Reconcile&nbsp;&nbsp;|&nbsp;&nbsp;Stay Compliant</div>', unsafe_allow_html=True)
+        st.markdown('<h2 style="text-align:center;color:#172033;font-size:24px;margin:0 0 4px;">Welcome Back</h2>', unsafe_allow_html=True)
+        st.markdown('<div class="login-subtitle" style="margin-bottom:22px;">Login to continue to your reconciliation dashboard</div>', unsafe_allow_html=True)
+
+        with st.form("gst_login_form", clear_on_submit=False):
+            login_id_input = st.text_input(
+                "Login ID",
+                placeholder="Enter your login ID",
+                key="gst_login_id"
+            )
+            password_input = st.text_input(
+                "Password",
+                type="password",
+                placeholder="Enter your password",
+                key="gst_login_password"
+            )
+            remember_me = st.checkbox("Remember me", value=True, key="gst_remember_me")
+            submitted = st.form_submit_button(
+                "🔐  SUBMIT",
+                type="primary",
+                use_container_width=True
+            )
+
+        if submitted:
+            if login_id_input.strip() == LOGIN_ID and password_input == LOGIN_PASSWORD:
+                st.session_state.authenticated = True
+                st.rerun()
+            else:
+                st.error("Invalid Login ID or Password. Please try again.")
+
+        st.markdown('<div class="login-locked-note">✓ Secure access • Professional GST workspace</div>', unsafe_allow_html=True)
+        st.markdown('<div class="login-divider"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="login-security">🔒 Your reconciliation workspace is protected by login authentication.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="login-small">GST Reconciliation Pro • Smart GST 2B vs Books Analysis</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('</div></div>', unsafe_allow_html=True)
+    st.stop()
 
 
 # =========================================================
@@ -393,6 +476,114 @@ st.markdown("""
     margin: 6px auto 0;
     opacity: 0.6;
 }
+
+
+/* =========================================================
+   LOGIN SCREEN — 3D LIGHT THEME
+   ========================================================= */
+@keyframes loginImageIn {
+    from { opacity: 0; transform: translateX(-35px) scale(.96); }
+    to { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes loginFloat {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-8px) scale(1.008); }
+}
+@keyframes loginCardIn {
+    from { opacity: 0; transform: translateX(35px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+.login-page {
+    min-height: 76vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 0 40px;
+}
+.login-shell {
+    width: 100%;
+    max-width: 1180px;
+    background: rgba(255,255,255,.94);
+    border: 1px solid #dbe7f5;
+    border-radius: 28px;
+    box-shadow: 0 22px 70px rgba(15,42,95,.12);
+    overflow: hidden;
+    animation: fadeInUp .65s ease;
+}
+.login-brand {
+    text-align: center;
+    color: #0f2a5f;
+    font-weight: 900;
+    font-size: 13px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin: 0 0 10px;
+}
+.login-title {
+    color: #172033 !important;
+    font-size: 34px !important;
+    font-weight: 900 !important;
+    line-height: 1.1 !important;
+    margin: 0 !important;
+    text-align: center;
+}
+.login-subtitle {
+    color: #64748b !important;
+    text-align: center;
+    margin: 10px 0 24px;
+    font-size: 14px;
+}
+.login-image-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 620px;
+    padding: 18px 12px 18px 24px;
+    background: linear-gradient(135deg,#f8fbff 0%,#eef5ff 55%,#ffffff 100%);
+    overflow: hidden;
+}
+.login-image {
+    width: 100%;
+    max-width: 640px;
+    border-radius: 22px;
+    display: block;
+    animation: loginImageIn .85s ease both, loginFloat 5s ease-in-out 1s infinite;
+    filter: drop-shadow(0 22px 35px rgba(15,42,95,.12));
+}
+.login-form-wrap {
+    padding: 54px 58px 46px;
+    animation: loginCardIn .85s ease both;
+}
+.login-security {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 11px;
+    margin-top: 22px;
+}
+.login-divider {
+    height: 1px;
+    background: #e6edf6;
+    margin: 26px 0 0;
+}
+.login-small {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 11px;
+    margin-top: 14px;
+}
+.login-locked-note {
+    text-align: center;
+    color: #16a34a;
+    font-size: 12px;
+    font-weight: 700;
+    margin-top: 8px;
+}
+@media (max-width: 900px) {
+    .login-form-wrap { padding: 36px 28px; }
+    .login-image-wrap { min-height: 430px; padding: 12px; }
+    .login-title { font-size: 28px !important; }
+}
+
 </style>
 """, unsafe_allow_html=True)
 
