@@ -58,8 +58,8 @@ if not st.session_state.authenticated:
     filter: drop-shadow(0 22px 35px rgba(15,42,95,.12));
 }
 .character {
-    transform-box: fill-box;
-    transform-origin: center bottom;
+    transform-box: view-box;
+    transform-origin: 265px 430px;
     animation: characterFloat 3.8s ease-in-out infinite;
 }
 .char-body {
@@ -73,48 +73,36 @@ if not st.session_state.authenticated:
     animation: headNod 3.4s ease-in-out infinite;
 }
 .char-arm-front {
-    transform-box: fill-box;
+    transform-box: view-box;
     transform-origin: 294px 334px;
     animation: presentArm 2.2s ease-in-out infinite;
 }
 
+/* Hands stay attached to their arms.
+   They inherit the arm movement instead of having a separate animation. */
 .char-hand-front,
 .char-hand-back {
-    transform-box: fill-box;
-    transform-origin: center;
+    transform: none;
+    animation: none !important;
 }
-.char-hand-front {
-    animation: handFrontMove 2.2s ease-in-out infinite;
-}
-.char-hand-back {
-    animation: handBackMove 2.6s ease-in-out infinite;
-}
-@keyframes handFrontMove {
-    0%, 100% { transform: rotate(0deg); }
-    30% { transform: rotate(-2deg); }
-    60% { transform: rotate(2deg); }
-}
-@keyframes handBackMove {
-    0%, 100% { transform: rotate(0deg); }
-    50% { transform: rotate(2deg); }
-}
+
 .char-arm-back {
-    transform-box: fill-box;
+    transform-box: view-box;
     transform-origin: 225px 333px;
     animation: backArm 2.6s ease-in-out infinite;
 }
 .char-leg-a {
-    transform-box: fill-box;
+    transform-box: view-box;
     transform-origin: 250px 425px;
     animation: walkLegA 1.05s ease-in-out infinite;
 }
 .char-leg-b {
-    transform-box: fill-box;
+    transform-box: view-box;
     transform-origin: 292px 425px;
     animation: walkLegB 1.05s ease-in-out infinite;
 }
 .char-briefcase {
-    transform-box: fill-box;
+    transform-box: view-box;
     transform-origin: 208px 395px;
     animation: briefcaseSwing 1.05s ease-in-out infinite;
 }
@@ -960,8 +948,8 @@ st.markdown("""
     filter: drop-shadow(0 22px 35px rgba(15,42,95,.12));
 }
 .character {
-    transform-box: fill-box;
-    transform-origin: center bottom;
+    transform-box: view-box;
+    transform-origin: 265px 430px;
     animation: characterFloat 3.8s ease-in-out infinite;
 }
 .char-body {
