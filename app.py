@@ -75,7 +75,7 @@ if not st.session_state.authenticated:
 .char-arm-front {
     transform-box: view-box;
     transform-origin: 294px 334px;
-    animation: presentArm 2.2s ease-in-out infinite;
+    animation: none !important;
 }
 
 /* Hands stay attached to their arms.
@@ -370,25 +370,24 @@ if not st.session_state.authenticated:
                     <path d="M345 366 C358 368 369 362 380 354"
                           fill="none" stroke="url(#skinGrad)" stroke-width="13" stroke-linecap="round"/>
                     <g class="char-hand-front">
-    <path d="M380 345
-             C384 341 390 342 392 346
-             L396 353
-             C398 356 397 359 394 360
-             L390 357
-             L392 364
-             C393 367 390 369 388 366
-             L384 360
-             L385 367
-             C385 370 382 371 380 368
-             L378 360
-             L375 365
-             C373 368 370 366 371 363
-             L376 351
-             C377 348 378 346 380 345Z"
-          fill="url(#skinGrad)"
-          stroke="#d99570"
-          stroke-width="1.5"
-          stroke-linejoin="round"/>
+    <path d="M477 414 C491 414 503 409 514 402
+             C519 398 524 391 529 392
+             C534 393 536 398 533 402
+             C539 400 544 402 545 406
+             C546 410 542 413 537 414
+             C542 416 543 420 540 423
+             C536 426 531 423 527 421
+             C530 426 527 430 523 430
+             C517 430 514 423 510 420
+             C501 424 490 428 479 427
+             Z"
+          fill="url(#skinGrad)"/>
+    <path d="M523 405 C528 400 530 396 529 392"
+          fill="none" stroke="#d98d67" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M531 414 C536 410 539 407 541 404"
+          fill="none" stroke="#d98d67" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M527 421 C532 418 536 416 539 414"
+          fill="none" stroke="#d98d67" stroke-width="2.2" stroke-linecap="round"/>
 </g>
                 </g>
 
