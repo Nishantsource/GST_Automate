@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -39,6 +40,145 @@ if not st.session_state.authenticated:
     # Pure inline SVG + CSS animation.
     # =====================================================
     login_visual = """
+<style>
+/* INLINE LOGIN SVG CSS */
+.login-visual-scene {
+    width: 100%;
+    max-width: 640px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: loginImageIn .85s ease both;
+}
+.login-character-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    overflow: visible;
+    filter: drop-shadow(0 22px 35px rgba(15,42,95,.12));
+}
+.character {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: characterFloat 3.8s ease-in-out infinite;
+}
+.char-body {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: bodyBreath 2.8s ease-in-out infinite;
+}
+.char-head {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: headNod 3.4s ease-in-out infinite;
+}
+.char-arm-front {
+    transform-box: fill-box;
+    transform-origin: 294px 334px;
+    animation: presentArm 2.2s ease-in-out infinite;
+}
+.char-arm-back {
+    transform-box: fill-box;
+    transform-origin: 225px 333px;
+    animation: backArm 2.6s ease-in-out infinite;
+}
+.char-leg-a {
+    transform-box: fill-box;
+    transform-origin: 250px 425px;
+    animation: walkLegA 1.05s ease-in-out infinite;
+}
+.char-leg-b {
+    transform-box: fill-box;
+    transform-origin: 292px 425px;
+    animation: walkLegB 1.05s ease-in-out infinite;
+}
+.char-briefcase {
+    transform-box: fill-box;
+    transform-origin: 208px 395px;
+    animation: briefcaseSwing 1.05s ease-in-out infinite;
+}
+.float-card {
+    transform-box: fill-box;
+    transform-origin: center;
+}
+.card-one { animation: cardFloat1 4.8s ease-in-out infinite; }
+.card-two { animation: cardFloat2 4.2s ease-in-out .4s infinite; }
+.card-three { animation: cardFloat3 5.1s ease-in-out .2s infinite; }
+.card-four { animation: cardFloat4 4.6s ease-in-out .7s infinite; }
+.card-five { animation: cardFloat5 4.9s ease-in-out .3s infinite; }
+.books { animation: tinyFloat 3.5s ease-in-out infinite; }
+.plant { animation: plantSway 4s ease-in-out infinite; transform-box: fill-box; transform-origin: center bottom; }
+.sparkles { animation: sparklePulse 2.4s ease-in-out infinite; }
+
+@keyframes characterFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-7px); }
+}
+@keyframes bodyBreath {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(1.012); }
+}
+@keyframes headNod {
+    0%, 100% { transform: rotate(0deg); }
+    45% { transform: rotate(-2deg); }
+    75% { transform: rotate(1.5deg); }
+}
+@keyframes presentArm {
+    0%, 100% { transform: rotate(0deg); }
+    30% { transform: rotate(-4deg); }
+    60% { transform: rotate(4deg); }
+}
+@keyframes backArm {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(5deg); }
+}
+@keyframes walkLegA {
+    0%, 100% { transform: rotate(3deg); }
+    50% { transform: rotate(-7deg); }
+}
+@keyframes walkLegB {
+    0%, 100% { transform: rotate(-7deg); }
+    50% { transform: rotate(3deg); }
+}
+@keyframes briefcaseSwing {
+    0%, 100% { transform: rotate(3deg); }
+    50% { transform: rotate(-5deg); }
+}
+@keyframes cardFloat1 {
+    0%, 100% { transform: translate(0,0) rotate(0deg); }
+    50% { transform: translate(4px,-9px) rotate(-1deg); }
+}
+@keyframes cardFloat2 {
+    0%, 100% { transform: translate(0,0) rotate(0deg); }
+    50% { transform: translate(-5px,7px) rotate(1deg); }
+}
+@keyframes cardFloat3 {
+    0%, 100% { transform: translate(0,0) rotate(0deg); }
+    50% { transform: translate(5px,-8px) rotate(1deg); }
+}
+@keyframes cardFloat4 {
+    0%, 100% { transform: translate(0,0) rotate(0deg); }
+    50% { transform: translate(-5px,-6px) rotate(-1deg); }
+}
+@keyframes cardFloat5 {
+    0%, 100% { transform: translate(0,0) rotate(0deg); }
+    50% { transform: translate(4px,7px) rotate(1deg); }
+}
+@keyframes tinyFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+@keyframes plantSway {
+    0%, 100% { transform: rotate(-1deg); }
+    50% { transform: rotate(2deg); }
+}
+@keyframes sparklePulse {
+    0%, 100% { opacity: .35; }
+    50% { opacity: 1; }
+}
+
+
+</style>
     <div class="login-visual-scene">
         <svg class="login-character-svg"
              viewBox="0 0 620 620"
@@ -267,10 +407,9 @@ if not st.session_state.authenticated:
     left_col, right_col = st.columns([1.08, 0.92], gap="small")
 
     with left_col:
-        st.markdown(
-            f'<div class="login-image-wrap">{login_visual}</div>',
-            unsafe_allow_html=True
-        )
+        st.markdown('<div class="login-image-wrap">', unsafe_allow_html=True)
+        components.html(login_visual, height=620, scrolling=False)
+        st.markdown('</div>', unsafe_allow_html=True)
 
     with right_col:
         st.markdown('<div class="login-form-wrap">', unsafe_allow_html=True)
